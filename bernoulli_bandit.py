@@ -1,7 +1,7 @@
 import numpy as np
 
 
-# define the reward mechanism for Bernoulli bandit
+# define the Bernoulli bandit
 class BernoulliBandit:
     def __init__(self, k):
         # define the number of arms/actions for the bandit

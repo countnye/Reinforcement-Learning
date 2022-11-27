@@ -34,5 +34,4 @@ for num, agent in enumerate(env.bandits):
     print('Bandit ', num, "'s arm count = ", agent.arm_count)
     print('Bandit ', num, "'s rewards = ", agent.rewards)
 
-
 # (!1)
