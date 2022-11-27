@@ -1,6 +1,6 @@
 import numpy as np
 
-import bernoulli_bandit as bb
+import bandit as bb
 
 
 class Environment:
@@ -11,9 +11,9 @@ class Environment:
         self.N = n
         # create N bandits with k arms of given type
         if bandit_type == 'b':
-            self.bandits = [bb.BernoulliBandit(k) for _ in range(self.N)]
+            self.bandits = [bb.Bandit(k, bb.Type.BERNOULLI) for _ in range(self.N)]
         elif bandit_type == 'g':
-            pass
+            self.bandits = [bb.Bandit(k, bb.Type.GAUSSIAN) for _ in range(self.N)]
 
     # agent picks random arms (to check agent implementation)
     def random_strategy(self):
