@@ -28,11 +28,17 @@ class Environment:
         for _ in range(self.T):
             for bandit in self.bandits:
                 # for every arm, calculate the action value
-                action_value = []
-                for arm in range(bandit.k):
-                    action_value.append(bandit.q_t(arm))
-                # select the arm with the highest action value
-                chosen_arm = action_value.index(max(action_value))
+                action_value = bandit.q_t()
+                zero_count = 0
+                for val in action_value:
+                    if val == 0.0:
+                        zero_count += 1
+                # if on first iteration, randomly choose an arm
+                if zero_count == bandit.k:
+                    chosen_arm = np.random.randint(0, bandit.k)
+                else:
+                    # select the arm with the highest action value
+                    chosen_arm = action_value.index(max(action_value))
                 # execute the chosen action
                 bandit.chooseArm(chosen_arm)
 

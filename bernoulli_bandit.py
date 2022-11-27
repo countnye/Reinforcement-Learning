@@ -25,13 +25,16 @@ class BernoulliBandit:
         self.arm_count[a] += 1
 
     # function to get the current action value estimate
-    def q_t(self, a):
-        # if arm has not been used, no reward is possible
-        if self.arm_count[a] == 0:
-            return 0
-        else:
-            # action value is sum of rewards/action count for a given action
-            return self.rewards[a]/self.arm_count[a]
+    def q_t(self):
+        action_value = [0.0 for _ in range(self.k)]
+        for a in range(self.k):
+            # if arm has not been used, no reward is possible
+            if self.arm_count[a] == 0:
+                action_value[a] = 0.0
+            else:
+                # action value is sum of rewards/action count for a given action
+                action_value[a] = self.rewards[a]/self.arm_count[a]
+        return action_value
 
     # function to return the rewards obtained by the bandit
     def getRewards(self):
