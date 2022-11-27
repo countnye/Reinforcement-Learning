@@ -24,8 +24,35 @@ class BernoulliBandit:
         # increment arm count by 1
         self.arm_count[a] += 1
 
+    # function to get the current action value estimate
+    def q_t(self, a):
+        # if arm has not been used, no reward is possible
+        if self.arm_count[a] == 0:
+            return 0
+        else:
+            # action value is sum of rewards/action count for a given action
+            return self.rewards[a]/self.arm_count[a]
+
     # function to return the rewards obtained by the bandit
     def getRewards(self):
         return self.rewards
+
+    # function to calculate max reward possible, used to calculate regret
+    def getMaxReward(self, n):
+        max_reward = [0 for _ in range(self.k)]
+        # for each arm, the max reward is simply getting 1 for each iteration
+        for idx in range(self.k):
+            for _ in range(n):
+                max_reward[idx] += 1
+        return max_reward
+
+    # function to calculate regret
+    def getRegret(self, n):
+        regret = []
+        max_reward = self.getMaxReward(n)
+        curr_reward = self.getRewards()
+        for i in range(self.k):
+            regret.append(max_reward[i] - curr_reward[i])
+        return regret
 
 # (!1)

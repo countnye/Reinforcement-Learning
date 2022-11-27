@@ -23,15 +23,31 @@ class Environment:
                 bandit.chooseArm(chosen_arm)
                 print('Bandit ', idx, ' chose arm ', chosen_arm)
 
+    # function for greedy strategy
+    def greedy(self):
+        for _ in range(self.T):
+            for bandit in self.bandits:
+                # for every arm, calculate the action value
+                action_value = []
+                for arm in range(bandit.k):
+                    action_value.append(bandit.q_t(arm))
+                # select the arm with the highest action value
+                chosen_arm = action_value.index(max(action_value))
+                # execute the chosen action
+                bandit.chooseArm(chosen_arm)
+
 
 # initialize the environment
 env = Environment(10, 2, 3, 'b')
 # execute the random strategy
-env.random_strategy()
+env.greedy()
 # print arm count and rewards for each bandit
 print("FINAL RESULTS:")
 for num, agent in enumerate(env.bandits):
     print('Bandit ', num, "'s arm count = ", agent.arm_count)
     print('Bandit ', num, "'s rewards = ", agent.rewards)
+    # how to get number of iteration? maybe global variable?
+    print('Bandit ', num, "'s regret = ", agent.getRegret(10))
+    print('====================================')
 
 # (!1)
