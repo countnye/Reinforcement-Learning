@@ -2,15 +2,17 @@ import numpy as np
 from enum import Enum
 import random as rd
 
+
 class Type(Enum):
     GAUSSIAN = 1
     BERNOULLI = 2
 
+
 # define the Bernoulli bandit
 class Bandit:
-    def __init__(self, k, type):
+    def __init__(self, k, bandit_type):
         # define the type of bandit (Gaussian/Bernoulli)
-        self.type = type
+        self.type = bandit_type
         # define the number of arms/actions for the bandit
         self.k = k
         # define an array to store all the rewards obtained
@@ -69,7 +71,7 @@ class Bandit:
                 action_value[a] = 0.0
             else:
                 # action value is sum of rewards/action count for a given action
-                action_value[a] = self.rewards[a]/self.arm_count[a]
+                action_value[a] = self.rewards[a] / self.arm_count[a]
         return action_value
 
     # function to return the rewards obtained by the bandit
@@ -89,7 +91,7 @@ class Bandit:
     def getRegret(self, n):
         regret = []
         max_reward = self.getMaxReward(n)
-        curr_reward = self.rewards()
+        curr_reward = self.rewards
         for i in range(self.k):
             regret.append(max_reward[i] - curr_reward[i])
         return regret
