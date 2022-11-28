@@ -43,7 +43,7 @@ class BernoulliBandit:
     # function to calculate max reward possible, used to calculate regret
     def getMaxReward(self, n):
         max_reward = [0 for _ in range(self.k)]
-        # for each arm, the max reward is simply getting 1 for each iteration
+        # for each arm, max reward is simply getting 1 for each iteration
         for idx in range(self.k):
             for _ in range(n):
                 max_reward[idx] += 1

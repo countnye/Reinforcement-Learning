@@ -5,7 +5,7 @@ import bernoulli_bandit as bb
 
 class Environment:
     def __init__(self, t, n, k, bandit_type):
-        # define number of iterations
+        # define the number of iterations
         self.T = t
         # define the number of bandits
         self.N = n
