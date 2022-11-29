@@ -42,11 +42,35 @@ class Environment:
                 # execute the chosen action
                 bandit.chooseArm(chosen_arm)
 
+    # function for epsilon greedy strategy
+    def e_greedy(self, e):
+        for _ in range(self.T):
+            for bandit in self.bandits:
+                # explore e% of iterations
+                if np.random.random() > e:
+                    chosen_arm = np.random.randint(0, bandit.k)
+                # exploit (1 - e)% of iterations
+                else:
+                    # for every arm, calculate the action value
+                    action_value = bandit.q_t()
+                    zero_count = 0
+                    for val in action_value:
+                        if val == 0.0:
+                            zero_count += 1
+                    # if on first iteration, randomly choose an arm
+                    if zero_count == bandit.k:
+                        chosen_arm = np.random.randint(0, bandit.k)
+                    else:
+                        # select the arm with the highest action value
+                        chosen_arm = action_value.index(max(action_value))
+                    # execute the chosen action
+                bandit.chooseArm(chosen_arm)
+
 
 # initialize the environment
 env = Environment(10, 2, 3, 'b')
 # execute the random strategy
-env.greedy()
+env.e_greedy(0.1)
 # print arm count and rewards for each bandit
 print("FINAL RESULTS:")
 for num, agent in enumerate(env.bandits):

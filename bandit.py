@@ -31,6 +31,8 @@ class Bandit:
     def initBernoulliArms(self):
         for _ in range(self.k):
             self.prob.append(round(np.random.uniform(0, 1), 2))
+        print('Bernoulli arm probabilities are ', self.prob)
+        print('Best arm is ', self.prob.index(max(self.prob)))
 
     # helper function to initialise reward distributions for each
     # arm for Gaussian bandit
@@ -38,6 +40,8 @@ class Bandit:
         # Generates and stores k different mean values to use with the
         # Gaussian arms. K random values are sampled without replacement
         self.prob = rd.sample(range(self.k), self.k)
+        print('Gaussian arm probabilities are ', self.prob)
+        print('Best arm is ', self.prob.index(max(self.prob)))
 
     # function to get reward for k arms/actions for all the bandits
     def chooseArm(self, a):
@@ -57,7 +61,7 @@ class Bandit:
 
     # Gaussian reward function
     def gaussianReward(self, a):
-        # get reward sampled from gaussian distr.
+        # get reward sampled from gaussian distribution
         # with mean unique to the particular arm
         self.rewards += np.random.normal(self.prob[a])
         self.arm_count[a] += 1
