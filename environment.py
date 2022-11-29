@@ -23,24 +23,28 @@ class Environment:
                 bandit.chooseArm(chosen_arm)
                 print('Bandit ', idx, ' chose arm ', chosen_arm)
 
-    # function for greedy strategy
     def greedy(self):
         for _ in range(self.T):
             for bandit in self.bandits:
-                # for every arm, calculate the action value
-                action_value = bandit.q_t()
-                zero_count = 0
-                for val in action_value:
-                    if val == 0.0:
-                        zero_count += 1
-                # if on first iteration, randomly choose an arm
-                if zero_count == bandit.k:
-                    chosen_arm = np.random.randint(0, bandit.k)
-                else:
-                    # select the arm with the highest action value
-                    chosen_arm = action_value.index(max(action_value))
-                # execute the chosen action
-                bandit.chooseArm(chosen_arm)
+                self.greedy_helper(bandit)
+
+
+    # function for greedy strategy
+    def greedy_helper(self, bandit):
+        # for every arm, calculate the action value
+        action_value = bandit.q_t()
+        # zero_count = 0
+        # for val in action_value:
+        #     if val == 0.0:
+        #         zero_count += 1
+        # # if on first iteration, randomly choose an arm
+        # if zero_count == bandit.k:
+        #     chosen_arm = np.random.randint(0, bandit.k)
+        # else:
+            # select the arm with the highest action value
+        chosen_arm = action_value.index(max(action_value))
+        # execute the chosen action
+        bandit.chooseArm(chosen_arm)
 
     # function for epsilon greedy strategy
     def e_greedy(self, e):
@@ -65,6 +69,22 @@ class Environment:
                         chosen_arm = action_value.index(max(action_value))
                     # execute the chosen action
                 bandit.chooseArm(chosen_arm)
+
+    # starts by assigning all actions an initial value greater than
+    # the mean reward we expect to receive after pulling each arm
+    def optimistic(self):
+        for _ in range(self.T):
+            # Initialise high action values for all bandits
+            map(lambda x:x.initQ0(), self.bandits)
+            # Execute greedy strategy for bandits
+            for bandit in self.bandits:
+                self.greedy_helper(bandit)
+
+    def UCB(self):
+        # NEED:
+        # Ni: number of times an action i was selected
+        # Ri: Sum of rewards of action i up to a round
+        pass
 
 
 # initialize the environment
