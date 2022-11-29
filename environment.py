@@ -5,7 +5,8 @@ import bandit as bb
 
 class Environment:
     def __init__(self, t, n, k, bandit_type):
-        # define the number of iterations
+        # define the number of iterations.
+        # Is also the time
         self.T = t
         # define the number of bandits
         self.N = n
@@ -80,11 +81,21 @@ class Environment:
             for bandit in self.bandits:
                 self.greedy_helper(bandit)
 
+    # UCB strategy.
     def UCB(self):
-        # NEED:
-        # Ni: number of times an action i was selected
-        # Ri: Sum of rewards of action i up to a round
-        pass
+        # Regularisation parameter
+        c = 0.1
+        for t in range(self.T):
+            for bandit in self.bandits:
+                q_t = bandit.q_t()
+                # n_a: number of times all actions were selected
+                n_a = bandit.n_a()
+                # list of all actions and their calculated
+                # confidence intervals
+                a_t = q_t + c (np.sqrt(np.log(t) / n_a))
+                chosen_arm = a_t.index(max(a_t))
+                # choose arm with largest UCB
+                bandit.chooseArm(chosen_arm)
 
 
 # initialize the environment

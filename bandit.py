@@ -78,6 +78,11 @@ class Bandit:
                 action_value[a] = self.rewards[a] / self.arm_count[a]
         return action_value
 
+    # returns number of times all actions have been taken
+    def n_a(self):
+        return self.arm_count
+
+
     # function to return the rewards obtained by the bandit
     def rewards(self):
         return self.rewards
