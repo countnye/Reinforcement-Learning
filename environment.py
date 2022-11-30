@@ -2,6 +2,8 @@ import numpy as np
 
 import bandit as bb
 
+ITERATIONS = 10
+
 
 class Environment:
     def __init__(self, t, n, k, bandit_type):
@@ -30,8 +32,16 @@ class Environment:
             for bandit in self.bandits:
                 # for every arm, calculate the action value
                 action_value = bandit.q_t()
-                # select the arm with the highest action value
-                chosen_arm = action_value.index(max(action_value))
+                # if first iteration, pick a random arm
+                zero_count = 0
+                for val in action_value:
+                    if val == 0.0:
+                        zero_count += 1
+                if zero_count == bandit.k:
+                    chosen_arm = np.random.randint(0, bandit.k)
+                else:
+                    # select the arm with the highest action value
+                    chosen_arm = action_value.index(max(action_value))
                 # execute the chosen action
                 bandit.chooseArm(chosen_arm)
 
@@ -95,16 +105,16 @@ class Environment:
 
 
 # initialize the environment
-env = Environment(t=10, n=2, k=3, bandit_type='g')
+env = Environment(t=ITERATIONS, n=2, k=3, bandit_type='g')
 # execute the random strategy
-env.UCB(0.1)
+env.greedy()
 # print arm count and rewards for each bandit
 print("FINAL RESULTS:")
 for num, agent in enumerate(env.bandits):
     print('Bandit ', num, "'s arm count = ", agent.arm_count)
     print('Bandit ', num, "'s rewards = ", agent.rewards)
     # how to get number of iteration? maybe global variable?
-    print('Bandit ', num, "'s regret = ", agent.get_regret(10))
+    print('Bandit ', num, "'s regret = ", agent.get_regret(ITERATIONS))
     print('====================================')
 
 # (!1)

@@ -81,6 +81,7 @@ class Bandit:
             else:
                 # action value is sum of rewards/action count for a given action
                 action_value[a] = self.rewards[a] / self.arm_count[a]
+        print(action_value)
         return action_value
 
     # returns number of times all actions have been taken
