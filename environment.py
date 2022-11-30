@@ -59,9 +59,10 @@ class Environment:
                     # execute the chosen action
                 bandit.chooseArm(chosen_arm)
 
-    # starts by assigning all actions an initial value greater than
-    # the mean reward we expect to receive after pulling each arm
+    # function for optimistic initial values strategy
     def optimistic(self):
+        # starts by assigning all actions an initial value greater than
+        # the mean reward we expect to receive after pulling each arm
         for _ in range(self.T):
             # Initialise high action values for all bandits
             map(lambda x: x.initQ0(), self.bandits)
@@ -74,10 +75,8 @@ class Environment:
                 # execute the chosen action
                 bandit.chooseArm(chosen_arm)
 
-    # UCB strategy.
-    def UCB(self):
-        # Regularisation parameter
-        c = 0.1
+    # function for UCB strategy
+    def UCB(self, c):
         for t in range(self.T):
             for bandit in self.bandits:
                 q_t = bandit.q_t()
@@ -90,18 +89,22 @@ class Environment:
                 # choose arm with largest UCB
                 bandit.chooseArm(chosen_arm)
 
+    # function for action preferences strategy
+    def action_preferences(self):
+        pass
+
 
 # initialize the environment
-env = Environment(10, 2, 3, 'b')
+env = Environment(t=10, n=2, k=3, bandit_type='g')
 # execute the random strategy
-env.e_greedy(0.1)
+env.UCB(0.1)
 # print arm count and rewards for each bandit
 print("FINAL RESULTS:")
 for num, agent in enumerate(env.bandits):
     print('Bandit ', num, "'s arm count = ", agent.arm_count)
     print('Bandit ', num, "'s rewards = ", agent.rewards)
     # how to get number of iteration? maybe global variable?
-    print('Bandit ', num, "'s regret = ", agent.getRegret(10))
+    print('Bandit ', num, "'s regret = ", agent.get_regret(10))
     print('====================================')
 
 # (!1)
