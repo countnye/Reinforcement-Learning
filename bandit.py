@@ -8,7 +8,7 @@ class Type(Enum):
     BERNOULLI = 2
 
 
-# define the Bernoulli bandit
+# define the bandit
 class Bandit:
     def __init__(self, k, bandit_type):
         # define the type of bandit (Gaussian/Bernoulli)
@@ -17,53 +17,58 @@ class Bandit:
         self.k = k
         # define an array to store all the rewards obtained
         self.rewards = [0 for _ in range(self.k)]
-        # stores the distributions for the k different arms
-        self.prob = []
+        # stores the reward probabilities for bernoulli bandit and
+        # the mean rewards for gaussian bandit
+        self.reward_param = []
         # store the number of times an action has been taken
         self.arm_count = [0 for _ in range(self.k)]
         if self.type == Type.BERNOULLI:
-            self.initBernoulliArms()
+            self.init_bernoulli_arms()
         elif self.type == Type.GAUSSIAN:
-            self.initGaussianArms()
+            self.init_gaussian_arms()
+        # store the best arm for the experiment run
+        self.best_arm = 0
 
     # helper function to initialise reward distributions for each
     # arm for Bernoulli bandit
-    def initBernoulliArms(self):
+    def init_bernoulli_arms(self):
         for _ in range(self.k):
-            self.prob.append(round(np.random.uniform(0, 1), 2))
-        print('Bernoulli arm probabilities are ', self.prob)
-        print('Best arm is ', self.prob.index(max(self.prob)))
+            self.reward_param.append(round(np.random.uniform(0, 1), 2))
+        print('Bernoulli arm probabilities are ', self.reward_param)
+        self.best_arm = self.reward_param.index(max(self.reward_param))
+        print('Best arm is ', self.best_arm)
 
     # helper function to initialise reward distributions for each
     # arm for Gaussian bandit
-    def initGaussianArms(self):
+    def init_gaussian_arms(self):
         # Generates and stores k different mean values to use with the
         # Gaussian arms. K random values are sampled without replacement
-        self.prob = rd.sample(range(self.k), self.k)
-        print('Gaussian arm probabilities are ', self.prob)
-        print('Best arm is ', self.prob.index(max(self.prob)))
+        self.reward_param = rd.sample(range(0, 100), self.k)
+        print('Gaussian arm means are ', self.reward_param)
+        self.best_arm = self.reward_param.index(max(self.reward_param))
+        print('Best arm is ', self.best_arm)
 
     # function to get reward for k arms/actions for all the bandits
     def chooseArm(self, a):
         if self.type == Type.BERNOULLI:
-            self.bernoulliReward(a)
+            self.bernoulli_reward(a)
         elif self.type == Type.GAUSSIAN:
-            self.gaussianReward(a)
+            self.gaussian_reward(a)
 
     # Bernoulli reward function
-    def bernoulliReward(self, a):
+    def bernoulli_reward(self, a):
         # if chosen value is higher than win prob for given arm, reward is 1
         val = np.random.random()
-        if val > self.prob[a]:
+        if val > self.reward_param[a]:
             self.rewards[a] += 1
         # increment arm count by 1
         self.arm_count[a] += 1
 
     # Gaussian reward function
-    def gaussianReward(self, a):
+    def gaussian_reward(self, a):
         # get reward sampled from gaussian distribution
         # with mean unique to the particular arm
-        self.rewards[a] += np.random.normal(self.prob[a])
+        self.rewards[a] += np.random.normal(self.reward_param[a])
         self.arm_count[a] += 1
 
     # function to get the current action value estimate
@@ -83,11 +88,11 @@ class Bandit:
         return self.arm_count
 
     # function to return the rewards obtained by the bandit
-    def rewards(self):
+    def get_rewards(self):
         return self.rewards
 
     # function to calculate max reward possible, used to calculate regret
-    def getMaxReward(self, n):
+    def get_max_reward(self, n):
         max_reward = [0 for _ in range(self.k)]
         # for each arm, max reward is simply getting 1 for each iteration
         for idx in range(self.k):
@@ -96,9 +101,9 @@ class Bandit:
         return max_reward
 
     # function to calculate regret
-    def getRegret(self, n):
+    def get_regret(self, n):
         regret = []
-        max_reward = self.getMaxReward(n)
+        max_reward = self.get_max_reward(n)
         curr_reward = self.rewards
         for i in range(self.k):
             regret.append(max_reward[i] - curr_reward[i])
