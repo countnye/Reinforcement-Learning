@@ -48,6 +48,9 @@ class Bandit:
         self.best_arm = self.reward_param.index(max(self.reward_param))
         print('Best arm is ', self.best_arm)
 
+    def initQ0(self):
+        pass
+
     # function to get reward for k arms/actions for all the bandits
     def chooseArm(self, a):
         if self.type == Type.BERNOULLI:
@@ -85,8 +88,8 @@ class Bandit:
         return action_value
 
     # returns number of times all actions have been taken
-    def n_a(self):
-        return self.arm_count
+    def n_a(self, a):
+        return 1 if self.arm_count[a] < 1 else self.arm_count[a]
 
     # function to return the rewards obtained by the bandit
     def get_rewards(self):
