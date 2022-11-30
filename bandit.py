@@ -63,7 +63,7 @@ class Bandit:
     def gaussianReward(self, a):
         # get reward sampled from gaussian distribution
         # with mean unique to the particular arm
-        self.rewards += np.random.normal(self.prob[a])
+        self.rewards[a] += np.random.normal(self.prob[a])
         self.arm_count[a] += 1
 
     # function to get the current action value estimate
@@ -81,7 +81,6 @@ class Bandit:
     # returns number of times all actions have been taken
     def n_a(self):
         return self.arm_count
-
 
     # function to return the rewards obtained by the bandit
     def rewards(self):

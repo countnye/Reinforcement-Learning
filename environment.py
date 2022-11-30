@@ -92,7 +92,7 @@ class Environment:
 
 
 # initialize the environment
-env = Environment(10, 2, 3, 'b')
+env = Environment(10, 2, 3, 'g')
 # execute the random strategy
 env.e_greedy(0.1)
 # print arm count and rewards for each bandit
