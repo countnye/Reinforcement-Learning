@@ -28,16 +28,12 @@ class Environment:
     def greedy(self):
         for _ in range(self.T):
             for bandit in self.bandits:
-                self.greedy_helper(bandit)
-
-    # helper function for greedy strategy
-    def greedy_helper(self, bandit):
-        # for every arm, calculate the action value
-        action_value = bandit.q_t()
-        # select the arm with the highest action value
-        chosen_arm = action_value.index(max(action_value))
-        # execute the chosen action
-        bandit.chooseArm(chosen_arm)
+                # for every arm, calculate the action value
+                action_value = bandit.q_t()
+                # select the arm with the highest action value
+                chosen_arm = action_value.index(max(action_value))
+                # execute the chosen action
+                bandit.chooseArm(chosen_arm)
 
     # function for epsilon greedy strategy
     def e_greedy(self, e):
@@ -71,7 +67,12 @@ class Environment:
             map(lambda x: x.initQ0(), self.bandits)
             # Execute greedy strategy for bandits
             for bandit in self.bandits:
-                self.greedy_helper(bandit)
+                # for every arm, calculate the action value
+                action_value = bandit.q_t()
+                # select the arm with the highest action value
+                chosen_arm = action_value.index(max(action_value))
+                # execute the chosen action
+                bandit.chooseArm(chosen_arm)
 
     # UCB strategy.
     def UCB(self):
