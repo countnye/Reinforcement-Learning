@@ -8,7 +8,7 @@ class Type(Enum):
     BERNOULLI = 2
 
 
-# define the bandit
+# initialize the bandit class
 class Bandit:
     def __init__(self, k, bandit_type):
         # define the type of bandit (Gaussian/Bernoulli)

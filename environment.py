@@ -30,7 +30,7 @@ class Environment:
     def greedy(self):
         for _ in range(self.T):
             for bandit in self.bandits:
-                # for every arm, calculate the action value
+                # for every arm, calculate the action values
                 action_value = bandit.q_t()
                 # if first iteration, pick a random arm
                 zero_count = 0
