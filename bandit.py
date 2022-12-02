@@ -28,10 +28,14 @@ class Bandit:
             self.init_gaussian_arms()
         # store the best arm for the experiment run
         self.best_arm = 0
+        # store the action value or reward estimate for each arm
         self.action_value = [0.0 for _ in range(self.k)]
+        # store the probability of choosing best arm
+        self.best_arm_prob = []
+        # store the regret for each iteration
+        self.regret_over_t = [[] for _ in range(self.k)]
 
-    # helper function to initialise reward distributions for each
-    # arm for Bernoulli bandit
+    # initialise reward distributions for the Bernoulli bandit
     def init_bernoulli_arms(self):
         for _ in range(self.k):
             self.reward_param.append(round(np.random.uniform(0, 1), 2))
@@ -39,8 +43,7 @@ class Bandit:
         self.best_arm = self.reward_param.index(max(self.reward_param))
         print('Best arm is ', self.best_arm)
 
-    # helper function to initialise reward distributions for each
-    # arm for Gaussian bandit
+    # initialize reward for the Gaussian bandit
     def init_gaussian_arms(self):
         # Generates and stores k different mean values to use with the
         # Gaussian arms. K random values are sampled without replacement
@@ -127,5 +130,19 @@ class Bandit:
         for i in range(self.k):
             regret.append(max_reward[i] - curr_reward[i])
         return regret
+
+    # function to update best arm probability
+    def update_best_arm_prob(self):
+        # print('best arm = ', self.best_arm)
+        # print('best arm count = ', self.arm_count[self.best_arm])
+        # print('total count = ', sum(self.arm_count))
+        self.best_arm_prob.append(round((self.arm_count[self.best_arm]/sum(self.arm_count)) * 100, 2))
+
+    # function to update the regret
+    def update_regret(self, t):
+        max_reward = self.get_max_reward(t)
+        curr_reward = self.rewards
+        for i in range(self.k):
+            self.regret_over_t[i].append(max_reward[i] - curr_reward[i])
 
 # (!1)
