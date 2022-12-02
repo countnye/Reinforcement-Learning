@@ -49,10 +49,11 @@ class Bandit:
         self.best_arm = self.reward_param.index(max(self.reward_param))
         print('Best arm is ', self.best_arm)
 
-    def initQ0(self):
+    # function to set initial action values to a given value, used for optimistic strategy
+    def initQ0(self, n):
         for idx, item in enumerate(self.action_value):
-            # change to match distribution
-            self.action_value[idx] = 200
+            # initialize the action values to twice the highest possible reward
+            self.action_value[idx] = 2 * self.get_max_reward(n)[idx]
 
     # function to get reward for k arms/actions for all the bandits
     def chooseArm(self, a):
@@ -105,16 +106,23 @@ class Bandit:
     # function to calculate max reward possible, used to calculate regret
     def get_max_reward(self, n):
         max_reward = [0 for _ in range(self.k)]
-        # for each arm, max reward is simply getting 1 for each iteration
-        for idx in range(self.k):
-            for _ in range(n):
-                max_reward[idx] += 1
+        if self.type == Type.BERNOULLI:
+            # for each arm, max reward is simply getting 1 for each iteration
+            for idx in range(self.k):
+                for _ in range(n):
+                    max_reward[idx] += 1
+        elif self.type == Type.GAUSSIAN:
+            # for each arm, max reward is getting the mean reward for each iteration
+            highest_mean = max(self.reward_param)
+            for idx in range(self.k):
+                for _ in range(n):
+                    max_reward[idx] += highest_mean
         return max_reward
 
     # function to calculate regret
-    def get_regret(self, n):
+    def get_regret(self, t):
         regret = []
-        max_reward = self.get_max_reward(n)
+        max_reward = self.get_max_reward(t)
         curr_reward = self.rewards
         for i in range(self.k):
             regret.append(max_reward[i] - curr_reward[i])

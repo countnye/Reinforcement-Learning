@@ -8,7 +8,6 @@ ITERATIONS = 1000
 class Environment:
     def __init__(self, t, n, k, bandit_type):
         # define the number of iterations.
-        # Is also the time
         self.T = t
         # define the number of bandits
         self.N = n
@@ -75,10 +74,10 @@ class Environment:
         # starts by assigning all actions an initial value greater than
         # the mean reward we expect to receive after pulling each arm
         for _ in range(self.T):
-            # Initialise high action values for all bandits
+            # initialise high action values for all bandits
             for bandit in self.bandits:
-                bandit.initQ0()
-            # Execute greedy strategy for bandits
+                bandit.initQ0(self.T)
+            # execute greedy strategy for bandits
             for bandit in self.bandits:
                 # for every arm, calculate the action value
                 action_value = bandit.q_t()
@@ -124,9 +123,9 @@ env.optimistic()
 print("FINAL RESULTS:")
 for num, agent in enumerate(env.bandits):
     print('Bandit ', num, "'s arm count = ", agent.arm_count)
-    print('Bandit ', num, "'s rewards = ", agent.rewards)
+    print('Bandit ', num, "'s rewards = ", [round(item, 2) for item in agent.rewards])
     # how to get number of iteration? maybe global variable?
-    print('Bandit ', num, "'s regret = ", agent.get_regret(ITERATIONS))
+    print('Bandit ', num, "'s regret = ", [round(item, 2) for item in agent.get_regret(ITERATIONS)])
     print('====================================')
 
 # (!1)
