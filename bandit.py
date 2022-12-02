@@ -22,12 +22,13 @@ class Bandit:
         self.reward_param = []
         # store the number of times an action has been taken
         self.arm_count = [0 for _ in range(self.k)]
+        # store the best arm for the experiment run
+        self.best_arm = 0
+        # initialize bandit arms based on bandit type
         if self.type == Type.BERNOULLI:
             self.init_bernoulli_arms()
         elif self.type == Type.GAUSSIAN:
             self.init_gaussian_arms()
-        # store the best arm for the experiment run
-        self.best_arm = 0
         # store the action value or reward estimate for each arm
         self.action_value = [0.0 for _ in range(self.k)]
         # store the probability of choosing best arm
