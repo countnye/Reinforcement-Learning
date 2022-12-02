@@ -45,10 +45,12 @@ class Environment:
                 bandit.chooseArm(chosen_arm)
                 # update the best arm probability for each iteration
                 bandit.update_best_arm_prob()
+                # update regret for each iteration
+                bandit.update_regret(t)
 
     # function for epsilon greedy strategy
     def e_greedy(self, e):
-        for _ in range(self.T):
+        for t in range(self.T):
             for bandit in self.bandits:
                 # explore e% of iterations
                 if np.random.random() > e:
@@ -71,6 +73,8 @@ class Environment:
                 bandit.chooseArm(chosen_arm)
                 # update the best arm probability for each iteration
                 bandit.update_best_arm_prob()
+                # update regret for each iteration
+                bandit.update_regret(t)
 
     # function for optimistic initial values strategy
     def optimistic(self):
@@ -92,6 +96,8 @@ class Environment:
                 bandit.action_value[chosen_arm] = reward
                 # update the best arm probability for each iteration
                 bandit.update_best_arm_prob()
+                # update regret for each iteration
+                bandit.update_regret(t)
 
     # function for UCB strategy
     def UCB(self, c):
@@ -102,7 +108,7 @@ class Environment:
                 # confidence intervals
                 a_t = [0.0 for _ in range(bandit.k)]
                 for idx, action in enumerate(bandit.arm_count):
-                    # fix this part
+                    # if arm has not been used, set the second part of equation to a high value
                     if action == 0.0:
                         a_t[idx] = q_t[idx] + 10000
                     else:

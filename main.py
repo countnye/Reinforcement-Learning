@@ -1,15 +1,15 @@
 import environment as env
 
 # initialize the environment
-state = env.Environment(t=10, n=3, k=4, bandit_type='g')
+state = env.Environment(t=1000, n=3, k=4, bandit_type='g')
 # execute the chosen strategy
-state.UCB(0.1)
+state.e_greedy(0.2)
 # print the final stats
 state.print_stats()
 # plot the best arm probability
 # state.plot_best_arm_prob('UCB')
 # plot the regret of each arm for each bandit
 for bandit in state.bandits:
-    state.plot_regret(bandit, 'UCB')
+    state.plot_regret(bandit, 'Greedy')
 
 # (!1)
