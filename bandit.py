@@ -28,6 +28,7 @@ class Bandit:
             self.init_gaussian_arms()
         # store the best arm for the experiment run
         self.best_arm = 0
+        self.action_value = [0.0 for _ in range(self.k)]
 
     # helper function to initialise reward distributions for each
     # arm for Bernoulli bandit
@@ -49,14 +50,17 @@ class Bandit:
         print('Best arm is ', self.best_arm)
 
     def initQ0(self):
-        pass
+        for idx, item in enumerate(self.action_value):
+            # change to match distribution
+            self.action_value[idx] = 200
 
     # function to get reward for k arms/actions for all the bandits
     def chooseArm(self, a):
         if self.type == Type.BERNOULLI:
-            self.bernoulli_reward(a)
+            reward = self.bernoulli_reward(a)
         elif self.type == Type.GAUSSIAN:
-            self.gaussian_reward(a)
+            reward = self.gaussian_reward(a)
+        return reward
 
     # Bernoulli reward function
     def bernoulli_reward(self, a):
@@ -64,28 +68,31 @@ class Bandit:
         val = np.random.random()
         if val > self.reward_param[a]:
             self.rewards[a] += 1
-        # increment arm count by 1
-        self.arm_count[a] += 1
+            self.arm_count[a] += 1
+            return 1
+        else:
+            self.arm_count[a] += 1
+            return 0
 
     # Gaussian reward function
     def gaussian_reward(self, a):
         # get reward sampled from gaussian distribution
         # with mean unique to the particular arm
-        self.rewards[a] += np.random.normal(self.reward_param[a])
+        reward = np.random.normal(self.reward_param[a])
+        self.rewards[a] += reward
         self.arm_count[a] += 1
+        return reward
 
     # function to get the current action value estimate
     def q_t(self):
-        action_value = [0.0 for _ in range(self.k)]
         for a in range(self.k):
             # if arm has not been used, no reward is possible
             if self.arm_count[a] == 0:
-                action_value[a] = 0.0
+                continue
             else:
                 # action value is sum of rewards/action count for a given action
-                action_value[a] = self.rewards[a] / self.arm_count[a]
-        print(action_value)
-        return action_value
+                self.action_value[a] = self.rewards[a] / self.arm_count[a]
+        return self.action_value
 
     # returns number of times all actions have been taken
     def n_a(self, a):
