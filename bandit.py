@@ -61,6 +61,7 @@ class Bandit:
 
     # function to get reward for k arms/actions for all the bandits
     def chooseArm(self, a):
+        reward = 0
         if self.type == Type.BERNOULLI:
             reward = self.bernoulli_reward(a)
         elif self.type == Type.GAUSSIAN:
@@ -106,6 +107,10 @@ class Bandit:
     # function to return the rewards obtained by the bandit
     def get_rewards(self):
         return self.rewards
+
+    # returns average reward up to a timestep
+    def get_average_reward(self):
+        return sum(self.rewards) / len(self.rewards)
 
     # function to calculate max reward possible, used to calculate regret
     def get_max_reward(self, n):

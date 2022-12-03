@@ -122,13 +122,39 @@ class Environment:
                 bandit.update_regret(t)
 
     # function for action preferences strategy
-    def action_preferences(self):
-        # for t in range(self.T):
-        #     for bandit in self.bandits:
-        #         # if in first iteration, initial preferences are the reward parameters
-        #         if t == 0:
-        #             curr_preference = bandit.reward_param
-        pass
+    def action_preferences(self, alpha):
+        H_t = None
+        for t in range(1, self.T + 1):
+            for bandit in self.bandits:
+                # Initialise H_t with same value for all actions.
+                # Only during first iteration
+                if t == 1:
+                    H_t = [10 for _ in range(bandit.k)]
+                else:
+                    # Compute policy at timestep
+                    pi_t = (np.exp(H_t)) / (np.sum(np.exp(H_t)))
+                    # choose an action based on prob. distr.
+                    actions = np.arange(start=0, stop=bandit.k, step=1)
+                    chosen_arm = np.random.choice(a=actions, p=pi_t)
+                    # Get reward assocaited with action
+                    r_t = bandit.chooseArm(chosen_arm)
+                    avg_r = bandit.get_average_reward()
+                    # Update H_t(a') based on chosen arm/action: a'
+                    H_t[chosen_arm] = H_t[chosen_arm] + alpha * (r_t - avg_r) * (1 - pi_t[chosen_arm])
+                    # Update H_t for all non-chosen arms
+                    for _ in range(len(H_t)):
+                        if _ == chosen_arm:
+                            continue
+                        else:
+                            H_t[_] = H_t[_] - alpha * (r_t - avg_r) * (pi_t[_])
+
+                    bandit.update_best_arm_prob()
+                    bandit.update_regret(t)
+
+                
+
+
+
 
     # function to plot percentage times the best arm was chosen
     def plot_best_arm_prob(self, strategy):
@@ -164,5 +190,9 @@ class Environment:
             print('Bandit ', num, "'s regret = ", [round(item, 2) for item in agent.get_regret(self.T)])
             print('====================================')
 
+
+env = Environment(t=100, n=2, k=4, bandit_type='g')
+env.action_preferences(0.1)
+env.print_stats()
 
 # (!1)
