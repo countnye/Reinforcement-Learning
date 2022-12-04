@@ -35,6 +35,8 @@ class Bandit:
         self.best_arm_prob = []
         # store the regret for each iteration
         self.regret_over_t = [[] for _ in range(self.k)]
+        # store the average reward for each iteration
+        self.avg_reward_over_t = []
 
     # initialise reward distributions for the Bernoulli bandit
     def init_bernoulli_arms(self):
@@ -46,8 +48,8 @@ class Bandit:
 
     # initialize reward for the Gaussian bandit
     def init_gaussian_arms(self):
-        # Generates and stores k different mean values to use with the
-        # Gaussian arms. K random values are sampled without replacement
+        # generates and stores k different mean values to use with the
+        # gaussian arms. K random values are sampled without replacement
         self.reward_param = rd.sample(range(0, 100), self.k)
         print('Gaussian arm means are ', self.reward_param)
         self.best_arm = self.reward_param.index(max(self.reward_param))
@@ -68,7 +70,7 @@ class Bandit:
             reward = self.gaussian_reward(a)
         return reward
 
-    # Bernoulli reward function
+    # function for Bernoulli reward
     def bernoulli_reward(self, a):
         # if chosen value is higher than win prob for given arm, reward is 1
         val = np.random.random()
@@ -80,7 +82,7 @@ class Bandit:
             self.arm_count[a] += 1
             return 0
 
-    # Gaussian reward function
+    # function for Gaussian reward
     def gaussian_reward(self, a):
         # get reward sampled from gaussian distribution
         # with mean unique to the particular arm
@@ -139,9 +141,6 @@ class Bandit:
 
     # function to update best arm probability
     def update_best_arm_prob(self):
-        # print('best arm = ', self.best_arm)
-        # print('best arm count = ', self.arm_count[self.best_arm])
-        # print('total count = ', sum(self.arm_count))
         self.best_arm_prob.append(round((self.arm_count[self.best_arm]/sum(self.arm_count)) * 100, 2))
 
     # function to update the regret
@@ -150,5 +149,9 @@ class Bandit:
         curr_reward = self.rewards
         for i in range(self.k):
             self.regret_over_t[i].append(max_reward[i] - curr_reward[i])
+
+    # function to update average reward
+    def update_reward(self, reward):
+        self.avg_reward_over_t.append(reward)
 
 # (!1)

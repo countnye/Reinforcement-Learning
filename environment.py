@@ -22,7 +22,6 @@ class Environment:
             for idx, bandit in enumerate(self.bandits):
                 chosen_arm = np.random.choice(bandit.k)
                 bandit.chooseArm(chosen_arm)
-                print('Bandit ', idx, ' chose arm ', chosen_arm)
 
     # function for greedy strategy
     # negative reward is the only case where the initial arm is non-negative
@@ -42,18 +41,20 @@ class Environment:
                     # select the arm with the highest action value
                     chosen_arm = action_value.index(max(action_value))
                 # execute the chosen action
-                bandit.chooseArm(chosen_arm)
+                reward = bandit.chooseArm(chosen_arm)
                 # update the best arm probability for each iteration
                 bandit.update_best_arm_prob()
                 # update regret for each iteration
                 bandit.update_regret(t)
+                # update the reward each iteration
+                bandit.update_reward(reward)
 
     # function for epsilon greedy strategy
     def e_greedy(self, e):
         for t in range(self.T):
             for bandit in self.bandits:
                 # explore e% of iterations
-                if np.random.random() > e:
+                if np.random.random() < e:
                     chosen_arm = np.random.randint(0, bandit.k)
                 # exploit (1 - e)% of iterations
                 else:
@@ -70,11 +71,13 @@ class Environment:
                         # select the arm with the highest action value
                         chosen_arm = action_value.index(max(action_value))
                     # execute the chosen action
-                bandit.chooseArm(chosen_arm)
+                reward = bandit.chooseArm(chosen_arm)
                 # update the best arm probability for each iteration
                 bandit.update_best_arm_prob()
                 # update regret for each iteration
                 bandit.update_regret(t)
+                # update the reward each iteration
+                bandit.update_reward(reward)
 
     # function for optimistic initial values strategy
     def optimistic(self):
@@ -98,6 +101,8 @@ class Environment:
                 bandit.update_best_arm_prob()
                 # update regret for each iteration
                 bandit.update_regret(t)
+                # update the reward each iteration
+                bandit.update_reward(reward)
 
     # function for UCB strategy
     def UCB(self, c):
@@ -115,46 +120,42 @@ class Environment:
                         a_t[idx] = q_t[idx] + c * (math.sqrt(math.log(t) / action))
                 chosen_arm = a_t.index(max(a_t))
                 # choose arm with largest UCB
-                bandit.chooseArm(chosen_arm)
+                reward = bandit.chooseArm(chosen_arm)
                 # update the best arm probability for each iteration
                 bandit.update_best_arm_prob()
                 # update regret for each iteration
                 bandit.update_regret(t)
+                # update the reward each iteration
+                bandit.update_reward(reward)
 
     # function for action preferences strategy
     def action_preferences(self, alpha):
         H_t = None
         for t in range(1, self.T + 1):
             for bandit in self.bandits:
-                # Initialise H_t with same value for all actions.
-                # Only during first iteration
+                # initialise H_t with same value for all actions.
+                # only during first iteration
                 if t == 1:
                     H_t = [10 for _ in range(bandit.k)]
                 else:
-                    # Compute policy at timestep
+                    # compute policy at timestep
                     pi_t = (np.exp(H_t)) / (np.sum(np.exp(H_t)))
-                    # choose an action based on prob. distr.
+                    # choose an action based on probability distribution
                     actions = np.arange(start=0, stop=bandit.k, step=1)
                     chosen_arm = np.random.choice(a=actions, p=pi_t)
-                    # Get reward assocaited with action
+                    # get reward associated with action
                     r_t = bandit.chooseArm(chosen_arm)
                     avg_r = bandit.get_average_reward()
-                    # Update H_t(a') based on chosen arm/action: a'
+                    # update H_t(a') based on chosen arm/action: a'
                     H_t[chosen_arm] = H_t[chosen_arm] + alpha * (r_t - avg_r) * (1 - pi_t[chosen_arm])
-                    # Update H_t for all non-chosen arms
+                    # update H_t for all non-chosen arms
                     for _ in range(len(H_t)):
                         if _ == chosen_arm:
                             continue
                         else:
                             H_t[_] = H_t[_] - alpha * (r_t - avg_r) * (pi_t[_])
-
                     bandit.update_best_arm_prob()
                     bandit.update_regret(t)
-
-                
-
-
-
 
     # function to plot percentage times the best arm was chosen
     def plot_best_arm_prob(self, strategy):
@@ -171,10 +172,24 @@ class Environment:
     def plot_regret(self, bandit, strategy):
         x = [i for i in range(self.T)]
         y = [regret for regret in bandit.regret_over_t]
-        # plot the probabilities
+        # plot the regret
         for num in range(bandit.k):
             plt.plot(x, y[num], label="arm " + str(num))
         plt.title('Regret for arm using ' + strategy + ' strategy')
+        plt.legend()
+        plt.show()
+
+    # function to plot the average reward over each arm
+    def plot_reward(self, bandits, strategy):
+        x = [i for i in range(self.T)]
+        fig, ax = plt.subplots()
+        # plot the reward
+        for num in range(self.N):
+            y = bandits[num].avg_reward_over_t
+            ax.plot(x, y, label="bandit " + str(num))
+        plt.title('Average reward using ' + strategy + ' strategy')
+        plt.xlabel('Iteration number')
+        plt.ylabel('Reward')
         plt.legend()
         plt.show()
 
@@ -189,10 +204,5 @@ class Environment:
             # how to get number of iteration? maybe global variable?
             print('Bandit ', num, "'s regret = ", [round(item, 2) for item in agent.get_regret(self.T)])
             print('====================================')
-
-
-env = Environment(t=100, n=2, k=4, bandit_type='g')
-env.action_preferences(0.1)
-env.print_stats()
 
 # (!1)
