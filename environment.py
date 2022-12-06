@@ -96,13 +96,13 @@ class Environment:
                 run_reward[i][j] /= self.epochs
             self.epoch_reward.append(run_reward[i])
 
+
     # function for optimistic initial values strategy
     def optimistic(self):
         run_reward = [[0.0 for _ in range(self.T)] for _ in range(self.N)]
         # starts by assigning all actions an initial value greater than
         # the mean reward we expect to receive after pulling each arm
         for _ in range(self.epochs):
-            print(_)
             for t in range(self.T):
                 # initialise high action values for all bandits
                 for bandit in self.bandits:
@@ -237,3 +237,8 @@ class Environment:
             print('====================================')
 
 # (!1)
+
+env = Environment(epochs=1, t=1000, n=1, k=3, bandit_type='g')
+env.e_greedy(0.1)
+env.plot_reward("optimistic")
+env.plot_best_arm_prob("optimistic")

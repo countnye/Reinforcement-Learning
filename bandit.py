@@ -50,7 +50,7 @@ class Bandit:
     def init_gaussian_arms(self):
         # generates and stores k different mean values to use with the
         # gaussian arms. K random values are sampled without replacement
-        self.reward_param = rd.sample(range(0, 101), self.k)
+        self.reward_param = [rd.randint(0, 4) for _ in range(self.k)]
         print('Gaussian arm means are ', self.reward_param)
         self.best_arm = self.reward_param.index(max(self.reward_param))
         print('Best arm is ', self.best_arm)
@@ -86,7 +86,11 @@ class Bandit:
     def gaussian_reward(self, a):
         # get reward sampled from gaussian distribution
         # with mean unique to the particular arm
-        reward = np.random.normal(self.reward_param[a], 5)
+        # reward = np.random.normal(self.reward_param[a], 1)
+        reward = rd.gauss(self.reward_param[a], 1)
+        # get only positive rewards
+        while reward < 0:
+            reward = rd.gauss(self.reward_param[a], 1)
         self.rewards[a] += reward
         self.arm_count[a] += 1
         return reward
@@ -104,8 +108,9 @@ class Bandit:
 
     # function to reset the action value
     def reset_action_val(self):
-        for i in range(self.k):
-            self.action_value[i] = 0.0
+        self.action_value = [0.0 for _ in range(self.k)]
+        self.rewards = [0 for _ in range(self.k)]
+        self.arm_count = [0 for _ in range(self.k)]
 
     # returns number of times all actions have been taken
     def n_a(self, a):
