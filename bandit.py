@@ -86,7 +86,7 @@ class Bandit:
     def gaussian_reward(self, a):
         # get reward sampled from gaussian distribution
         # with mean unique to the particular arm
-        reward = np.random.normal(self.reward_param[a], 5)
+        reward = np.random.normal(self.reward_param[a])
         self.rewards[a] += reward
         self.arm_count[a] += 1
         return reward

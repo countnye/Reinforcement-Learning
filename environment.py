@@ -20,14 +20,6 @@ class Environment:
         # store the average reward for each run per epoch for each bandit
         self.epoch_reward = []
 
-    # agent picks random arms (to check agent implementation)
-    def random_strategy(self):
-        for _ in range(self.epochs):
-            for _ in range(self.T):
-                for idx, bandit in enumerate(self.bandits):
-                    chosen_arm = np.random.choice(bandit.k)
-                    bandit.chooseArm(chosen_arm)
-
     # function for greedy strategy
     # negative reward is the only case where the initial arm is non-negative
     def greedy(self):
@@ -162,31 +154,31 @@ class Environment:
     # function for action preferences strategy
     def action_preferences(self, alpha):
         H_t = None
-        for t in range(1, self.T + 1):
-            for bandit in self.bandits:
-                # initialise H_t with same value for all actions.
-                # only during first iteration
-                if t == 1:
-                    H_t = [10 for _ in range(bandit.k)]
-                else:
-                    # compute policy at timestep
-                    pi_t = (np.exp(H_t)) / (np.sum(np.exp(H_t)))
-                    # choose an action based on probability distribution
-                    actions = np.arange(start=0, stop=bandit.k, step=1)
-                    chosen_arm = np.random.choice(a=actions, p=pi_t)
-                    # get reward associated with action
-                    r_t = bandit.chooseArm(chosen_arm)
-                    avg_r = bandit.get_average_reward()
-                    # update H_t(a') based on chosen arm/action: a'
-                    H_t[chosen_arm] = H_t[chosen_arm] + alpha * (r_t - avg_r) * (1 - pi_t[chosen_arm])
-                    # update H_t for all non-chosen arms
-                    for _ in range(len(H_t)):
-                        if _ == chosen_arm:
-                            continue
-                        else:
-                            H_t[_] = H_t[_] - alpha * (r_t - avg_r) * (pi_t[_])
-                    bandit.update_best_arm_prob()
-                    bandit.update_regret(t)
+        for _ in range(self.epochs):
+            for t in range(1, self.T + 1):
+                for bandit in self.bandits:
+                    # initialise H_t with same value for all actions.
+                    # only during first iteration
+                    if t == 1:
+                        H_t = [10 for _ in range(bandit.k)]
+                    else:
+                        # compute policy at timestep
+                        pi_t = (np.exp(H_t)) / (np.sum(np.exp(H_t)))
+                        # choose an action based on probability distribution
+                        actions = np.arange(start=0, stop=bandit.k, step=1)
+                        chosen_arm = np.random.choice(a=actions, p=pi_t)
+                        # get reward associated with action
+                        r_t = bandit.chooseArm(chosen_arm)
+                        avg_r = bandit.get_average_reward()
+                        # update H_t(a') based on chosen arm/action: a'
+                        H_t[chosen_arm] = H_t[chosen_arm] + alpha * (r_t - avg_r) * (1 - pi_t[chosen_arm])
+                        # update H_t for all non-chosen arms
+                        for _ in range(len(H_t)):
+                            if _ == chosen_arm:
+                                continue
+                            else:
+                                H_t[_] = H_t[_] - alpha * (r_t - avg_r) * (pi_t[_])
+                        bandit.update_best_arm_prob()
 
     # function to plot percentage times the best arm was chosen
     def plot_best_arm_prob(self, strategy):
