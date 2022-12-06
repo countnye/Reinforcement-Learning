@@ -167,7 +167,7 @@ class Environment:
                 # initialise H_t with same value for all actions.
                 # only during first iteration
                 if t == 1:
-                    H_t = [10 for _ in range(bandit.k)]
+                    H_t = [0 for _ in range(bandit.k)]
                 else:
                     # compute policy at timestep
                     pi_t = (np.exp(H_t)) / (np.sum(np.exp(H_t)))
