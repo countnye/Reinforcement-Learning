@@ -1,10 +1,10 @@
 import environment as env
 
 # initialize the environment
-state = env.Environment(epochs=10, t=1000, n=3, k=3, bandit_type='g')
+state = env.Environment(epochs=10, t=1000, n=2, k=6, bandit_type='g')
 
 # execute the chosen strategy
-state.e_greedy(0.1)
+state.optimistic()
 
 # print the final stats
 state.print_stats()

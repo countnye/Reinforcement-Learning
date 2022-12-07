@@ -21,6 +21,10 @@ class Environment:
         # store the average reward for each run per epoch for each bandit
         self.epoch_reward = []
         self.epoch_best_arm = []
+        # store the average reward obtained by each arm for each bandit
+        self.arm_reward = [[0.0 for _ in range(k)] for _ in range(self.N)]
+        # store the average arm count for each arm for each bandit
+        self.arm_count = [[0.0 for _ in range(k)] for _ in range(self.N)]
 
     # function for greedy strategy
     # negative reward is the only case where the initial arm is non-negative
@@ -47,6 +51,10 @@ class Environment:
                         chosen_arm = action_value.index(max(action_value))
                     # execute the chosen action
                     reward = bandit.chooseArm(chosen_arm)
+                    # increment reward for chosen arm
+                    self.arm_reward[idx][chosen_arm] += reward
+                    # increment arm count for chosen arm
+                    self.arm_count[idx][chosen_arm] += 1
                     # update regret for each iteration
                     bandit.update_regret(t)
                     # update the best arm probability for each iteration
@@ -83,6 +91,10 @@ class Environment:
                         chosen_arm = action_value.index(max(action_value))
                         # execute the chosen action
                     reward = bandit.chooseArm(chosen_arm)
+                    # increment reward for chosen arm
+                    self.arm_reward[idx][chosen_arm] += reward
+                    # increment arm count for chosen arm
+                    self.arm_count[idx][chosen_arm] += 1
                     # update the best arm probability for each iteration
                     best_arm_prob[idx][t] += bandit.best_arm_prob()
                     # add the reward to the run corresponding to the bandit
@@ -95,7 +107,6 @@ class Environment:
                 best_arm_prob[i][j] /= self.epochs
             self.epoch_reward.append(run_reward[i])
             self.epoch_best_arm.append(best_arm_prob[i])
-
 
     # function for optimistic initial values strategy
     def optimistic(self):
@@ -119,6 +130,10 @@ class Environment:
                     chosen_arm = action_value.index(max(action_value))
                     # execute the chosen action
                     reward = bandit.chooseArm(chosen_arm)
+                    # increment reward for chosen arm
+                    self.arm_reward[idx][chosen_arm] += reward
+                    # increment arm count for chosen arm
+                    self.arm_count[idx][chosen_arm] += 1
                     # replace reward estimate with obtained reward
                     bandit.action_value[chosen_arm] = reward
                     # update the best arm probability for each iteration
@@ -156,6 +171,10 @@ class Environment:
                     chosen_arm = a_t.index(max(a_t))
                     # choose arm with largest UCB
                     reward = bandit.chooseArm(chosen_arm)
+                    # increment reward for chosen arm
+                    self.arm_reward[idx][chosen_arm] += reward
+                    # increment arm count for chosen arm
+                    self.arm_count[idx][chosen_arm] += 1
                     # update the best arm probability for each iteration
                     best_arm_prob[idx][t - 1] += bandit.best_arm_prob()
                     # add the reward to the run corresponding to the bandit
@@ -192,6 +211,10 @@ class Environment:
                         chosen_arm = np.random.choice(a=actions, p=pi_t)
                         # get reward associated with action
                         r_t = bandit.chooseArm(chosen_arm)
+                        # increment reward for chosen arm
+                        self.arm_reward[idx][chosen_arm] += r_t
+                        # increment arm count for chosen arm
+                        self.arm_count[idx][chosen_arm] += 1
                         avg_r = bandit.get_average_reward()
                         # update H_t(a') based on chosen arm/action: a'
                         H_t[chosen_arm] = H_t[chosen_arm] + alpha * (r_t - avg_r) * (1 - pi_t[chosen_arm])
@@ -215,7 +238,6 @@ class Environment:
             self.epoch_reward.append(run_reward[i])
             self.epoch_best_arm.append(best_arm_prob[i])
 
-    
     # function to plot percentage times the best arm was chosen
     def plot_best_arm_prob(self, strategy):
         x = [i for i in range(self.T)]
