@@ -34,7 +34,7 @@ class Environment:
         for _ in range(self.epochs):
             # reset the action values
             for b in self.bandits:
-                b.reset_action_val()
+                b.epoch_reset()
             for t in range(self.T):
                 for idx, bandit in enumerate(self.bandits):
                     # for every arm, calculate the action values
@@ -77,7 +77,7 @@ class Environment:
         for _ in range(self.epochs):
             # reset the action values
             for b in self.bandits:
-                b.reset_action_val()
+                b.epoch_reset()
             for t in range(self.T):
                 for idx, bandit in enumerate(self.bandits):
                     # explore e% of iterations
@@ -117,7 +117,7 @@ class Environment:
         for _ in range(self.epochs):
             # reset the action values
             for b in self.bandits:
-                b.reset_action_val()
+                b.epoch_reset()
             for t in range(self.T):
                 # initialise high action values for all bandits
                 for bandit in self.bandits:
@@ -155,7 +155,7 @@ class Environment:
         for _ in range(self.epochs):
             # reset the action values
             for b in self.bandits:
-                b.reset_action_val()
+                b.epoch_reset()
             for t in range(1, self.T + 1):
                 for idx, bandit in enumerate(self.bandits):
                     q_t = bandit.q_t()
@@ -164,8 +164,8 @@ class Environment:
                     a_t = [0.0 for _ in range(bandit.k)]
                     for index, action in enumerate(bandit.arm_count):
                         # if arm has not been used, set the second part of equation to a high value
-                        if action == 0.0:
-                            a_t[index] = q_t[index] + 10000
+                        if action == 0:
+                            a_t[index] = q_t[index] + 2 * bandit.k
                         else:
                             a_t[index] = q_t[index] + c * (math.sqrt(math.log(t) / action))
                     chosen_arm = a_t.index(max(a_t))
@@ -196,7 +196,7 @@ class Environment:
         for _ in range(self.epochs):
             # reset the action values
             for b in self.bandits:
-                b.reset_action_val()
+                b.epoch_reset()
             for t in range(1, self.T + 1):
                 for idx, bandit in enumerate(self.bandits):
                     # initialise H_t with same value for all actions.
@@ -274,18 +274,6 @@ class Environment:
         plt.legend()
         plt.show()
 
-    def write_to_file(self, filename):
-        with open(filename + '.csv', 'w') as file:
-            fields = ['Timestep', 'Avg Reward', 'Prob. Choosing Best Arm']
-            csvwriter = csv.writer(file)
-            csvwriter.writerow(fields)
-
-            for t in range(self.T):
-                # write time step, avg reward at t for 0th bandit
-                row = [t, self.epoch_reward[0][t], ]
-                csvwriter.writerow(row)
-
-
     # function to print the stats
     def print_stats(self):
         print("FINAL RESULTS:")
@@ -300,30 +288,62 @@ class Environment:
 
     def reset(self):
         for bandit in self.bandits:
-            bandit.reset_action_val()
+            bandit.epoch_reset()
         self.epoch_reward = []
         self.epoch_best_arm = []
 
+    def write_to_list(self, list1, list2):
+        list1.append(self.epoch_reward)
+        list2.append(self.epoch_best_arm)
+        
+
 # (!1)
 
-env = Environment(epochs=10, t=1000, n=1, k=6, bandit_type='g')
+def plot(list, string):
+    strategies = ['GREEDY', 'E_GREEDY', 'OPTIMISTIC', 'UCB', 'ACTION_PREF']
+    x_axis = [t for t in range(env.T)]
+    fig, ax = plt.subplots()
+    # for each of the 5 strategies plot REWARD
+    for idx in range(5):
+        ax.plot(x_axis, list[idx], label=strategies[idx])
+
+    plt.title(string + " per strategy")
+    plt.xlabel("Timestep")
+    plt.ylabel(string)
+    plt.legend()
+    plt.show()
+
+
+env = Environment(epochs=100, t=1000, n=1, k=5, bandit_type='b')
+
+y_axis_reward = []
+y_axis_arm = []
+
 env.greedy()
-env.write_to_file("greedy")
+env.write_to_list(y_axis_reward, y_axis_arm)
 env.reset()
 
 env.e_greedy(0.1)
-env.write_to_file("e_greedy_0.1")
+env.write_to_list(y_axis_reward, y_axis_arm)
 env.reset()
 
 env.optimistic()
-env.write_to_file("optimistic")
+env.write_to_list(y_axis_reward, y_axis_arm)
 env.reset()
 
-env.UCB(0.1)
-env.write_to_file("UCB_0.1")
+env.UCB(10)
+env.write_to_list(y_axis_reward, y_axis_arm)
 env.reset()
 
 env.action_preferences(0.1)
-env.write_to_file("action_preferences_0.1")
+env.write_to_list(y_axis_reward, y_axis_arm)
 env.reset()
+
+
+y_axis_arm = np.squeeze(y_axis_arm)
+y_axis_reward = np.squeeze(y_axis_reward)
+
+plot(y_axis_arm, "% of choosing best arm")
+plot(y_axis_reward, "Average Reward")
+
 
