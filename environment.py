@@ -2,6 +2,7 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 import bandit as bb
+import csv
 
 
 class Environment:
@@ -21,20 +22,15 @@ class Environment:
         self.epoch_reward = []
         self.epoch_best_arm = []
 
-    # agent picks random arms (to check agent implementation)
-    def random_strategy(self):
-        for _ in range(self.epochs):
-            for _ in range(self.T):
-                for idx, bandit in enumerate(self.bandits):
-                    chosen_arm = np.random.choice(bandit.k)
-                    bandit.chooseArm(chosen_arm)
-
     # function for greedy strategy
     # negative reward is the only case where the initial arm is non-negative
     def greedy(self):
         run_reward = [[0.0 for _ in range(self.T)] for _ in range(self.N)]
         best_arm_prob = [[0.0 for _ in range(self.T)] for _ in range(self.N)]
         for _ in range(self.epochs):
+            # reset the action values
+            for b in self.bandits:
+                b.reset_action_val()
             for t in range(self.T):
                 for idx, bandit in enumerate(self.bandits):
                     # for every arm, calculate the action values
@@ -57,9 +53,7 @@ class Environment:
                     best_arm_prob[idx][t] += bandit.best_arm_prob()
                     # add the reward to the run corresponding to the bandit
                     run_reward[idx][t] += reward
-            # reset the action values
-            for b in self.bandits:
-                b.reset_action_val()
+
         # average the run reward
         for i in range(self.N):
             for j in range(self.T):
@@ -73,6 +67,9 @@ class Environment:
         run_reward = [[0.0 for _ in range(self.T)] for _ in range(self.N)]
         best_arm_prob = [[0.0 for _ in range(self.T)] for _ in range(self.N)]
         for _ in range(self.epochs):
+            # reset the action values
+            for b in self.bandits:
+                b.reset_action_val()
             for t in range(self.T):
                 for idx, bandit in enumerate(self.bandits):
                     # explore e% of iterations
@@ -90,9 +87,7 @@ class Environment:
                     best_arm_prob[idx][t] += bandit.best_arm_prob()
                     # add the reward to the run corresponding to the bandit
                     run_reward[idx][t] += reward
-            # reset the action values
-            for b in self.bandits:
-                b.reset_action_val()
+
         # average the run reward
         for i in range(self.N):
             for j in range(self.T):
@@ -109,6 +104,9 @@ class Environment:
         # starts by assigning all actions an initial value greater than
         # the mean reward we expect to receive after pulling each arm
         for _ in range(self.epochs):
+            # reset the action values
+            for b in self.bandits:
+                b.reset_action_val()
             for t in range(self.T):
                 # initialise high action values for all bandits
                 for bandit in self.bandits:
@@ -140,6 +138,9 @@ class Environment:
         run_reward = [[0.0 for _ in range(self.T)] for _ in range(self.N)]
         best_arm_prob = [[0.0 for _ in range(self.T)] for _ in range(self.N)]
         for _ in range(self.epochs):
+            # reset the action values
+            for b in self.bandits:
+                b.reset_action_val()
             for t in range(1, self.T + 1):
                 for idx, bandit in enumerate(self.bandits):
                     q_t = bandit.q_t()
@@ -159,9 +160,7 @@ class Environment:
                     best_arm_prob[idx][t - 1] += bandit.best_arm_prob()
                     # add the reward to the run corresponding to the bandit
                     run_reward[idx][t - 1] += reward
-            # reset the action values
-            for b in self.bandits:
-                b.reset_action_val()
+
         # average the run reward
         for i in range(self.N):
             for j in range(self.T):
@@ -176,6 +175,9 @@ class Environment:
         run_reward = [[0.0 for _ in range(self.T)] for _ in range(self.N)]
         best_arm_prob = [[0.0 for _ in range(self.T)] for _ in range(self.N)]
         for _ in range(self.epochs):
+            # reset the action values
+            for b in self.bandits:
+                b.reset_action_val()
             for t in range(1, self.T + 1):
                 for idx, bandit in enumerate(self.bandits):
                     # initialise H_t with same value for all actions.
@@ -205,10 +207,6 @@ class Environment:
                         # add the reward to the run corresponding to the bandit
                         run_reward[idx][t - 1] += r_t
 
-            # reset the action values
-            for b in self.bandits:
-                b.reset_action_val()
-
         # average the run reward
         for i in range(self.N):
             for j in range(self.T):
@@ -222,7 +220,6 @@ class Environment:
     def plot_best_arm_prob(self, strategy):
         x = [i for i in range(self.T)]
         y = self.epoch_best_arm
-        print(y)
         # plot the probabilities
         for num in range(self.N):
             plt.plot(x, y[num], label="bandit " + str(num))
@@ -241,7 +238,7 @@ class Environment:
         plt.legend()
         plt.show()
 
-    # function to plot the average reward over each arm
+    # function to plot the average reward over each arm for each strategy
     def plot_reward(self, strategy):
         x = [i for i in range(self.T)]
         fig, ax = plt.subplots()
@@ -255,21 +252,56 @@ class Environment:
         plt.legend()
         plt.show()
 
+    def write_to_file(self, filename):
+        with open(filename + '.csv', 'w') as file:
+            fields = ['Timestep', 'Avg Reward', 'Prob. Choosing Best Arm']
+            csvwriter = csv.writer(file)
+            csvwriter.writerow(fields)
+
+            for t in range(self.T):
+                # write time step, avg reward at t for 0th bandit
+                row = [t, self.epoch_reward[0][t], ]
+                csvwriter.writerow(row)
+
+
     # function to print the stats
     def print_stats(self):
         print("FINAL RESULTS:")
         print('====================================')
         for num, agent in enumerate(self.bandits):
-            print('Bandit ', num, "'s best arm = ", agent.best_arm)
+            print('Bandit ', num, "'s best arm = ", agent.best_chosen_arm)
             print('Bandit ', num, "'s arm count = ", agent.arm_count)
             print('Bandit ', num, "'s rewards = ", [round(item, 2) for item in agent.rewards])
             # how to get number of iteration? maybe global variable?
             print('Bandit ', num, "'s regret = ", [round(item, 2) for item in agent.get_regret(self.T)])
             print('====================================')
 
+    def reset(self):
+        for bandit in self.bandits:
+            bandit.reset_action_val()
+        self.epoch_reward = []
+        self.epoch_best_arm = []
+
 # (!1)
 
 env = Environment(epochs=10, t=1000, n=1, k=6, bandit_type='g')
+env.greedy()
+env.write_to_file("greedy")
+env.reset()
+
+env.e_greedy(0.1)
+env.write_to_file("e_greedy_0.1")
+env.reset()
+
+env.optimistic()
+env.write_to_file("optimistic")
+env.reset()
+
 env.UCB(0.1)
-env.plot_reward("optimistic")
-env.plot_best_arm_prob("optimistic")
+env.write_to_file("UCB_0.1")
+env.reset()
+
+env.action_preferences(0.1)
+env.write_to_file("action_preferences_0.1")
+env.reset()
+

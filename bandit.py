@@ -33,6 +33,7 @@ class Bandit:
         self.regret_over_t = [[] for _ in range(self.k)]
         # store the average reward for each iteration
         self.avg_reward_over_t = []
+        self.best_chosen_arm = 0
 
     # initialise reward distributions for the Bernoulli bandit
     def init_bernoulli_arms(self):
@@ -65,6 +66,8 @@ class Bandit:
             reward = self.bernoulli_reward(a)
         elif self.type == Type.GAUSSIAN:
             reward = self.gaussian_reward(a)
+
+        self.update_best_arm()        
         return reward
 
     # function for Bernoulli reward
@@ -160,5 +163,9 @@ class Bandit:
     # function to update average reward
     def update_reward(self, reward):
         self.avg_reward_over_t.append(reward)
+
+    def update_best_arm(self):
+        self.best_chosen_arm = self.arm_count.index(max(self.arm_count))
+
 
 # (!1)
