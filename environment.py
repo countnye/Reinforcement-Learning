@@ -19,6 +19,7 @@ class Environment:
             self.bandits = [bb.Bandit(k, bb.Type.GAUSSIAN) for _ in range(self.N)]
         # store the average reward for each run per epoch for each bandit
         self.epoch_reward = []
+        self.epoch_best_arm = []
 
     # agent picks random arms (to check agent implementation)
     def random_strategy(self):
@@ -32,6 +33,7 @@ class Environment:
     # negative reward is the only case where the initial arm is non-negative
     def greedy(self):
         run_reward = [[0.0 for _ in range(self.T)] for _ in range(self.N)]
+        best_arm_prob = [[0.0 for _ in range(self.T)] for _ in range(self.N)]
         for _ in range(self.epochs):
             for t in range(self.T):
                 for idx, bandit in enumerate(self.bandits):
@@ -49,12 +51,10 @@ class Environment:
                         chosen_arm = action_value.index(max(action_value))
                     # execute the chosen action
                     reward = bandit.chooseArm(chosen_arm)
-                    # update the best arm probability for each iteration
-                    bandit.update_best_arm_prob()
                     # update regret for each iteration
                     bandit.update_regret(t)
-                    # update the reward each iteration
-                    bandit.update_reward(reward)
+                    # update the best arm probability for each iteration
+                    best_arm_prob[idx][t] += bandit.best_arm_prob()
                     # add the reward to the run corresponding to the bandit
                     run_reward[idx][t] += reward
             # reset the action values
@@ -64,11 +64,14 @@ class Environment:
         for i in range(self.N):
             for j in range(self.T):
                 run_reward[i][j] /= self.epochs
+                best_arm_prob[i][j] /= self.epochs
             self.epoch_reward.append(run_reward[i])
+            self.epoch_best_arm.append(best_arm_prob[i])
 
     # function for epsilon greedy strategy
     def e_greedy(self, e):
         run_reward = [[0.0 for _ in range(self.T)] for _ in range(self.N)]
+        best_arm_prob = [[0.0 for _ in range(self.T)] for _ in range(self.N)]
         for _ in range(self.epochs):
             for t in range(self.T):
                 for idx, bandit in enumerate(self.bandits):
@@ -84,7 +87,7 @@ class Environment:
                         # execute the chosen action
                     reward = bandit.chooseArm(chosen_arm)
                     # update the best arm probability for each iteration
-                    bandit.update_best_arm_prob()
+                    best_arm_prob[idx][t] += bandit.best_arm_prob()
                     # add the reward to the run corresponding to the bandit
                     run_reward[idx][t] += reward
             # reset the action values
@@ -94,12 +97,15 @@ class Environment:
         for i in range(self.N):
             for j in range(self.T):
                 run_reward[i][j] /= self.epochs
+                best_arm_prob[i][j] /= self.epochs
             self.epoch_reward.append(run_reward[i])
+            self.epoch_best_arm.append(best_arm_prob[i])
 
 
     # function for optimistic initial values strategy
     def optimistic(self):
         run_reward = [[0.0 for _ in range(self.T)] for _ in range(self.N)]
+        best_arm_prob = [[0.0 for _ in range(self.T)] for _ in range(self.N)]
         # starts by assigning all actions an initial value greater than
         # the mean reward we expect to receive after pulling each arm
         for _ in range(self.epochs):
@@ -118,18 +124,21 @@ class Environment:
                     # replace reward estimate with obtained reward
                     bandit.action_value[chosen_arm] = reward
                     # update the best arm probability for each iteration
-                    bandit.update_best_arm_prob()
+                    best_arm_prob[idx][t] += bandit.best_arm_prob()
                     # add the reward to the run corresponding to the bandit
                     run_reward[idx][t] += reward
         # average the run reward
         for i in range(self.N):
             for j in range(self.T):
                 run_reward[i][j] /= self.epochs
+                best_arm_prob[i][j] /= self.epochs
             self.epoch_reward.append(run_reward[i])
+            self.epoch_best_arm.append(best_arm_prob[i])
 
     # function for UCB strategy
     def UCB(self, c):
         run_reward = [[0.0 for _ in range(self.T)] for _ in range(self.N)]
+        best_arm_prob = [[0.0 for _ in range(self.T)] for _ in range(self.N)]
         for _ in range(self.epochs):
             for t in range(1, self.T + 1):
                 for idx, bandit in enumerate(self.bandits):
@@ -147,7 +156,7 @@ class Environment:
                     # choose arm with largest UCB
                     reward = bandit.chooseArm(chosen_arm)
                     # update the best arm probability for each iteration
-                    bandit.update_best_arm_prob()
+                    best_arm_prob[idx][t - 1] += bandit.best_arm_prob()
                     # add the reward to the run corresponding to the bandit
                     run_reward[idx][t - 1] += reward
             # reset the action values
@@ -157,41 +166,63 @@ class Environment:
         for i in range(self.N):
             for j in range(self.T):
                 run_reward[i][j] /= self.epochs
+                best_arm_prob[i][j] /= self.epochs
             self.epoch_reward.append(run_reward[i])
+            self.epoch_best_arm.append(best_arm_prob[i])
 
     # function for action preferences strategy
     def action_preferences(self, alpha):
         H_t = None
-        for t in range(1, self.T + 1):
-            for bandit in self.bandits:
-                # initialise H_t with same value for all actions.
-                # only during first iteration
-                if t == 1:
-                    H_t = [0 for _ in range(bandit.k)]
-                else:
-                    # compute policy at timestep
-                    pi_t = (np.exp(H_t)) / (np.sum(np.exp(H_t)))
-                    # choose an action based on probability distribution
-                    actions = np.arange(start=0, stop=bandit.k, step=1)
-                    chosen_arm = np.random.choice(a=actions, p=pi_t)
-                    # get reward associated with action
-                    r_t = bandit.chooseArm(chosen_arm)
-                    avg_r = bandit.get_average_reward()
-                    # update H_t(a') based on chosen arm/action: a'
-                    H_t[chosen_arm] = H_t[chosen_arm] + alpha * (r_t - avg_r) * (1 - pi_t[chosen_arm])
-                    # update H_t for all non-chosen arms
-                    for _ in range(len(H_t)):
-                        if _ == chosen_arm:
-                            continue
-                        else:
-                            H_t[_] = H_t[_] - alpha * (r_t - avg_r) * (pi_t[_])
-                    bandit.update_best_arm_prob()
-                    bandit.update_regret(t)
+        run_reward = [[0.0 for _ in range(self.T)] for _ in range(self.N)]
+        best_arm_prob = [[0.0 for _ in range(self.T)] for _ in range(self.N)]
+        for _ in range(self.epochs):
+            for t in range(1, self.T + 1):
+                for idx, bandit in enumerate(self.bandits):
+                    # initialise H_t with same value for all actions.
+                    # only during first iteration
+                    if t == 1:
+                        H_t = [0 for _ in range(bandit.k)]
+                    else:
+                        # compute policy at timestep
+                        pi_t = (np.exp(H_t)) / (np.sum(np.exp(H_t)))
+                        # choose an action based on probability distribution
+                        actions = np.arange(start=0, stop=bandit.k, step=1)
+                        chosen_arm = np.random.choice(a=actions, p=pi_t)
+                        # get reward associated with action
+                        r_t = bandit.chooseArm(chosen_arm)
+                        avg_r = bandit.get_average_reward()
+                        # update H_t(a') based on chosen arm/action: a'
+                        H_t[chosen_arm] = H_t[chosen_arm] + alpha * (r_t - avg_r) * (1 - pi_t[chosen_arm])
+                        # update H_t for all non-chosen arms
+                        for _ in range(len(H_t)):
+                            if _ == chosen_arm:
+                                continue
+                            else:
+                                H_t[_] = H_t[_] - alpha * (r_t - avg_r) * (pi_t[_])
+                        bandit.update_regret(t)
+                        # update the best arm probability for each iteration
+                        best_arm_prob[idx][t - 1] += bandit.best_arm_prob()
+                        # add the reward to the run corresponding to the bandit
+                        run_reward[idx][t - 1] += r_t
 
+            # reset the action values
+            for b in self.bandits:
+                b.reset_action_val()
+
+        # average the run reward
+        for i in range(self.N):
+            for j in range(self.T):
+                run_reward[i][j] /= self.epochs
+                best_arm_prob[i][j] /= self.epochs
+            self.epoch_reward.append(run_reward[i])
+            self.epoch_best_arm.append(best_arm_prob[i])
+
+    
     # function to plot percentage times the best arm was chosen
     def plot_best_arm_prob(self, strategy):
-        x = [i for i in range(self.T*self.epochs)]
-        y = [bandit.best_arm_prob for bandit in self.bandits]
+        x = [i for i in range(self.T)]
+        y = self.epoch_best_arm
+        print(y)
         # plot the probabilities
         for num in range(self.N):
             plt.plot(x, y[num], label="bandit " + str(num))
@@ -238,7 +269,7 @@ class Environment:
 
 # (!1)
 
-env = Environment(epochs=1, t=1000, n=1, k=3, bandit_type='g')
-env.e_greedy(0.1)
+env = Environment(epochs=10, t=1000, n=1, k=6, bandit_type='g')
+env.UCB(0.1)
 env.plot_reward("optimistic")
 env.plot_best_arm_prob("optimistic")

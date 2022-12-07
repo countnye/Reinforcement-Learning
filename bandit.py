@@ -22,8 +22,6 @@ class Bandit:
         self.reward_param = []
         # store the number of times an action has been taken
         self.arm_count = [0 for _ in range(self.k)]
-        # store the best arm for the experiment run
-        self.best_arm = 0
         # initialize bandit arms based on bandit type
         if self.type == Type.BERNOULLI:
             self.init_bernoulli_arms()
@@ -31,8 +29,6 @@ class Bandit:
             self.init_gaussian_arms()
         # store the action value or reward estimate for each arm
         self.action_value = [0.0 for _ in range(self.k)]
-        # store the probability of choosing best arm
-        self.best_arm_prob = []
         # store the regret for each iteration
         self.regret_over_t = [[] for _ in range(self.k)]
         # store the average reward for each iteration
@@ -50,7 +46,8 @@ class Bandit:
     def init_gaussian_arms(self):
         # generates and stores k different mean values to use with the
         # gaussian arms. K random values are sampled without replacement
-        self.reward_param = [rd.randint(0, 4) for _ in range(self.k)]
+        self.reward_param = rd.sample(range(0, self.k*2), self.k)
+        # self.reward_param = [rd.sample(0, self.k + 1) for _ in range(self.k)]
         print('Gaussian arm means are ', self.reward_param)
         self.best_arm = self.reward_param.index(max(self.reward_param))
         print('Best arm is ', self.best_arm)
@@ -87,10 +84,10 @@ class Bandit:
         # get reward sampled from gaussian distribution
         # with mean unique to the particular arm
         # reward = np.random.normal(self.reward_param[a], 1)
-        reward = rd.gauss(self.reward_param[a], 1)
+        reward = rd.gauss(self.reward_param[a], 0.1)
         # get only positive rewards
         while reward < 0:
-            reward = rd.gauss(self.reward_param[a], 1)
+            reward = rd.gauss(self.reward_param[a], 0.1)
         self.rewards[a] += reward
         self.arm_count[a] += 1
         return reward
@@ -150,8 +147,8 @@ class Bandit:
         return regret
 
     # function to update best arm probability
-    def update_best_arm_prob(self):
-        self.best_arm_prob.append(round((self.arm_count[self.best_arm]/sum(self.arm_count)) * 100, 2))
+    def best_arm_prob(self):
+        return round((self.arm_count[self.best_arm]/sum(self.arm_count)) * 100, 2)
 
     # function to update the regret
     def update_regret(self, t):
