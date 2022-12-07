@@ -22,6 +22,7 @@ class Bandit:
         self.reward_param = []
         # store the number of times an action has been taken
         self.arm_count = [0 for _ in range(self.k)]
+        self.best_arm = 0
         # initialize bandit arms based on bandit type
         if self.type == Type.BERNOULLI:
             self.init_bernoulli_arms()
@@ -104,7 +105,7 @@ class Bandit:
         return self.action_value
 
     # function to reset the action value
-    def reset_action_val(self):
+    def epoch_reset(self):
         self.action_value = [0.0 for _ in range(self.k)]
         self.rewards = [0 for _ in range(self.k)]
         self.arm_count = [0 for _ in range(self.k)]

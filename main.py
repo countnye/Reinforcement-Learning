@@ -1,7 +1,7 @@
 import environment as env
 
 # initialize the environment
-state = env.Environment(epochs=1, t=1000, n=1, k=5, bandit_type='g')
+state = env.Environment(epochs=10, t=1000, n=2, k=6, bandit_type='g')
 
 # execute the chosen strategy
 state.optimistic()
@@ -17,6 +17,6 @@ state.print_stats()
 #     state.plot_regret(bandit, 'Greedy')
 
 # plot the reward over time for each bandit
-state.plot_reward('Optimistic')
+state.plot_reward('E-Greedy')
 
 # (!1)

@@ -20,6 +20,10 @@ class Environment:
         # store the average reward for each run per epoch for each bandit
         self.epoch_reward = []
         self.epoch_best_arm = []
+        # store the average reward obtained by each arm for each bandit
+        self.arm_reward = [[0.0 for _ in range(k)] for _ in range(self.N)]
+        # store the average arm count for each arm for each bandit
+        self.arm_count = [[0.0 for _ in range(k)] for _ in range(self.N)]
 
     # agent picks random arms (to check agent implementation)
     def random_strategy(self):
@@ -51,6 +55,10 @@ class Environment:
                         chosen_arm = action_value.index(max(action_value))
                     # execute the chosen action
                     reward = bandit.chooseArm(chosen_arm)
+                    # increment reward for chosen arm
+                    self.arm_reward[idx][chosen_arm] += reward
+                    # increment arm count for chosen arm
+                    self.arm_count[idx][chosen_arm] += 1
                     # update regret for each iteration
                     bandit.update_regret(t)
                     # update the best arm probability for each iteration
@@ -59,7 +67,7 @@ class Environment:
                     run_reward[idx][t] += reward
             # reset the action values
             for b in self.bandits:
-                b.reset_action_val()
+                b.epoch_reset()
         # average the run reward
         for i in range(self.N):
             for j in range(self.T):
@@ -86,13 +94,17 @@ class Environment:
                         chosen_arm = action_value.index(max(action_value))
                         # execute the chosen action
                     reward = bandit.chooseArm(chosen_arm)
+                    # increment reward for chosen arm
+                    self.arm_reward[idx][chosen_arm] += reward
+                    # increment arm count for chosen arm
+                    self.arm_count[idx][chosen_arm] += 1
                     # update the best arm probability for each iteration
                     best_arm_prob[idx][t] += bandit.best_arm_prob()
                     # add the reward to the run corresponding to the bandit
                     run_reward[idx][t] += reward
             # reset the action values
             for b in self.bandits:
-                b.reset_action_val()
+                b.epoch_reset()
         # average the run reward
         for i in range(self.N):
             for j in range(self.T):
@@ -100,7 +112,6 @@ class Environment:
                 best_arm_prob[i][j] /= self.epochs
             self.epoch_reward.append(run_reward[i])
             self.epoch_best_arm.append(best_arm_prob[i])
-
 
     # function for optimistic initial values strategy
     def optimistic(self):
@@ -121,6 +132,10 @@ class Environment:
                     chosen_arm = action_value.index(max(action_value))
                     # execute the chosen action
                     reward = bandit.chooseArm(chosen_arm)
+                    # increment reward for chosen arm
+                    self.arm_reward[idx][chosen_arm] += reward
+                    # increment arm count for chosen arm
+                    self.arm_count[idx][chosen_arm] += 1
                     # replace reward estimate with obtained reward
                     bandit.action_value[chosen_arm] = reward
                     # update the best arm probability for each iteration
@@ -155,13 +170,17 @@ class Environment:
                     chosen_arm = a_t.index(max(a_t))
                     # choose arm with largest UCB
                     reward = bandit.chooseArm(chosen_arm)
+                    # increment reward for chosen arm
+                    self.arm_reward[idx][chosen_arm] += reward
+                    # increment arm count for chosen arm
+                    self.arm_count[idx][chosen_arm] += 1
                     # update the best arm probability for each iteration
                     best_arm_prob[idx][t - 1] += bandit.best_arm_prob()
                     # add the reward to the run corresponding to the bandit
                     run_reward[idx][t - 1] += reward
             # reset the action values
             for b in self.bandits:
-                b.reset_action_val()
+                b.epoch_reset()
         # average the run reward
         for i in range(self.N):
             for j in range(self.T):
@@ -190,6 +209,10 @@ class Environment:
                         chosen_arm = np.random.choice(a=actions, p=pi_t)
                         # get reward associated with action
                         r_t = bandit.chooseArm(chosen_arm)
+                        # increment reward for chosen arm
+                        self.arm_reward[idx][chosen_arm] += r_t
+                        # increment arm count for chosen arm
+                        self.arm_count[idx][chosen_arm] += 1
                         avg_r = bandit.get_average_reward()
                         # update H_t(a') based on chosen arm/action: a'
                         H_t[chosen_arm] = H_t[chosen_arm] + alpha * (r_t - avg_r) * (1 - pi_t[chosen_arm])
@@ -207,7 +230,7 @@ class Environment:
 
             # reset the action values
             for b in self.bandits:
-                b.reset_action_val()
+                b.epoch_reset()
 
         # average the run reward
         for i in range(self.N):
@@ -217,12 +240,10 @@ class Environment:
             self.epoch_reward.append(run_reward[i])
             self.epoch_best_arm.append(best_arm_prob[i])
 
-    
     # function to plot percentage times the best arm was chosen
     def plot_best_arm_prob(self, strategy):
         x = [i for i in range(self.T)]
         y = self.epoch_best_arm
-        print(y)
         # plot the probabilities
         for num in range(self.N):
             plt.plot(x, y[num], label="bandit " + str(num))
@@ -260,16 +281,15 @@ class Environment:
         print("FINAL RESULTS:")
         print('====================================')
         for num, agent in enumerate(self.bandits):
-            print('Bandit ', num, "'s best arm = ", agent.best_arm)
-            print('Bandit ', num, "'s arm count = ", agent.arm_count)
-            print('Bandit ', num, "'s rewards = ", [round(item, 2) for item in agent.rewards])
-            # how to get number of iteration? maybe global variable?
-            print('Bandit ', num, "'s regret = ", [round(item, 2) for item in agent.get_regret(self.T)])
+            print('Bandit ', num, "'s total arm count = ", self.arm_count[num])
+            print('Bandit ', num, "'s total rewards = ", self.arm_reward[num])
             print('====================================')
+
 
 # (!1)
 
-env = Environment(epochs=10, t=1000, n=1, k=6, bandit_type='g')
+env = Environment(epochs=10, t=1000, n=2, k=6, bandit_type='g')
 env.UCB(0.1)
-env.plot_reward("optimistic")
-env.plot_best_arm_prob("optimistic")
+env.print_stats()
+env.plot_reward("E-Greedy")
+env.plot_best_arm_prob("E-Greedy")
