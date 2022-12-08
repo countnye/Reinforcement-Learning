@@ -2,7 +2,6 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 import bandit as bb
-import csv
 
 
 class Environment:
@@ -27,7 +26,6 @@ class Environment:
         self.arm_count = [[0.0 for _ in range(k)] for _ in range(self.N)]
 
     # function for greedy strategy
-    # negative reward is the only case where the initial arm is non-negative
     def greedy(self):
         run_reward = [[0.0 for _ in range(self.T)] for _ in range(self.N)]
         best_arm_prob = [[0.0 for _ in range(self.T)] for _ in range(self.N)]
@@ -61,7 +59,6 @@ class Environment:
                     best_arm_prob[idx][t] += bandit.best_arm_prob()
                     # add the reward to the run corresponding to the bandit
                     run_reward[idx][t] += reward
-
         # average the run reward
         for i in range(self.N):
             for j in range(self.T):
@@ -99,7 +96,6 @@ class Environment:
                     best_arm_prob[idx][t] += bandit.best_arm_prob()
                     # add the reward to the run corresponding to the bandit
                     run_reward[idx][t] += reward
-
         # average the run reward
         for i in range(self.N):
             for j in range(self.T):
@@ -179,7 +175,6 @@ class Environment:
                     best_arm_prob[idx][t - 1] += bandit.best_arm_prob()
                     # add the reward to the run corresponding to the bandit
                     run_reward[idx][t - 1] += reward
-
         # average the run reward
         for i in range(self.N):
             for j in range(self.T):
@@ -229,7 +224,6 @@ class Environment:
                         best_arm_prob[idx][t - 1] += bandit.best_arm_prob()
                         # add the reward to the run corresponding to the bandit
                         run_reward[idx][t - 1] += r_t
-
         # average the run reward
         for i in range(self.N):
             for j in range(self.T):
@@ -249,17 +243,6 @@ class Environment:
         plt.legend()
         plt.show()
 
-    # function to plot regret over each iteration
-    def plot_regret(self, bandit, strategy):
-        x = [i for i in range(self.T)]
-        y = [regret for regret in bandit.regret_over_t]
-        # plot the regret
-        for num in range(bandit.k):
-            plt.plot(x, y[num], label="arm " + str(num))
-        plt.title('Regret for arm using ' + strategy + ' strategy')
-        plt.legend()
-        plt.show()
-
     # function to plot the average reward over each arm for each strategy
     def plot_reward(self, strategy):
         x = [i for i in range(self.T)]
@@ -274,76 +257,14 @@ class Environment:
         plt.legend()
         plt.show()
 
-    # function to print the stats
-    def print_stats(self):
-        print("FINAL RESULTS:")
-        print('====================================')
-        for num, agent in enumerate(self.bandits):
-            print('Bandit ', num, "'s best arm = ", agent.best_chosen_arm)
-            print('Bandit ', num, "'s arm count = ", agent.arm_count)
-            print('Bandit ', num, "'s rewards = ", [round(item, 2) for item in agent.rewards])
-            # how to get number of iteration? maybe global variable?
-            print('Bandit ', num, "'s regret = ", [round(item, 2) for item in agent.get_regret(self.T)])
-            print('====================================')
-
+    # function to reset the bandit
     def reset(self):
         for bandit in self.bandits:
             bandit.epoch_reset()
         self.epoch_reward = []
         self.epoch_best_arm = []
 
+    # function to write average reward and best arm probability to a singular list
     def write_to_list(self, list1, list2):
         list1.append(self.epoch_reward)
         list2.append(self.epoch_best_arm)
-        
-
-# (!1)
-
-def plot(list, string):
-    strategies = ['GREEDY', 'E_GREEDY', 'OPTIMISTIC', 'UCB', 'ACTION_PREF']
-    x_axis = [t for t in range(env.T)]
-    fig, ax = plt.subplots()
-    # for each of the 5 strategies plot REWARD
-    for idx in range(5):
-        ax.plot(x_axis, list[idx], label=strategies[idx])
-
-    plt.title(string + " per strategy")
-    plt.xlabel("Timestep")
-    plt.ylabel(string)
-    plt.legend()
-    plt.show()
-
-
-env = Environment(epochs=10, t=5000, n=1, k=5, bandit_type='b')
-
-y_axis_reward = []
-y_axis_arm = []
-
-env.greedy()
-env.write_to_list(y_axis_reward, y_axis_arm)
-env.reset()
-
-env.e_greedy(0.1)
-env.write_to_list(y_axis_reward, y_axis_arm)
-env.reset()
-
-env.optimistic()
-env.write_to_list(y_axis_reward, y_axis_arm)
-env.reset()
-
-env.UCB(1)
-env.write_to_list(y_axis_reward, y_axis_arm)
-env.reset()
-
-env.action_preferences(0.1)
-env.write_to_list(y_axis_reward, y_axis_arm)
-env.reset()
-
-
-y_axis_arm = np.squeeze(y_axis_arm)
-y_axis_reward = np.squeeze(y_axis_reward)
-
-plot(y_axis_arm, "% of choosing best arm")
-plot(y_axis_reward, "Average Reward")
-
-

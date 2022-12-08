@@ -48,7 +48,7 @@ class Bandit:
     def init_gaussian_arms(self):
         # generates and stores k different mean values to use with the
         # gaussian arms. K random values are sampled without replacement
-        self.reward_param = rd.sample(range(0, self.k*2), self.k)
+        self.reward_param = rd.sample(range(0, self.k * 2), self.k)
         # self.reward_param = [rd.sample(0, self.k + 1) for _ in range(self.k)]
         print('Gaussian arm means are ', self.reward_param)
         self.best_arm = self.reward_param.index(max(self.reward_param))
@@ -68,7 +68,7 @@ class Bandit:
         elif self.type == Type.GAUSSIAN:
             reward = self.gaussian_reward(a)
 
-        self.update_best_arm()        
+        self.update_best_arm()
         return reward
 
     # function for Bernoulli reward
@@ -124,7 +124,6 @@ class Bandit:
             self.init_gaussian_arms()
         self.epoch_reset()
 
-
     # returns number of times all actions have been taken
     def n_a(self, a):
         return 1 if self.arm_count[a] < 1 else self.arm_count[a]
@@ -164,7 +163,7 @@ class Bandit:
 
     # function to update best arm probability
     def best_arm_prob(self):
-        return round((self.arm_count[self.best_arm]/sum(self.arm_count)) * 100, 2)
+        return round((self.arm_count[self.best_arm] / sum(self.arm_count)) * 100, 2)
 
     # function to update the regret
     def update_regret(self, t):
@@ -179,6 +178,3 @@ class Bandit:
 
     def update_best_arm(self):
         self.best_chosen_arm = self.arm_count.index(max(self.arm_count))
-
-
-# (!1)
