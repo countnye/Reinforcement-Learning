@@ -34,7 +34,7 @@ class Environment:
         for _ in range(self.epochs):
             # reset the action values
             for b in self.bandits:
-                b.epoch_reset()
+                b.reset_bandit()
             for t in range(self.T):
                 for idx, bandit in enumerate(self.bandits):
                     # for every arm, calculate the action values
@@ -77,7 +77,7 @@ class Environment:
         for _ in range(self.epochs):
             # reset the action values
             for b in self.bandits:
-                b.epoch_reset()
+                b.reset_bandit()
             for t in range(self.T):
                 for idx, bandit in enumerate(self.bandits):
                     # explore e% of iterations
@@ -117,7 +117,7 @@ class Environment:
         for _ in range(self.epochs):
             # reset the action values
             for b in self.bandits:
-                b.epoch_reset()
+                b.reset_bandit()
             for t in range(self.T):
                 # initialise high action values for all bandits
                 for bandit in self.bandits:
@@ -155,7 +155,7 @@ class Environment:
         for _ in range(self.epochs):
             # reset the action values
             for b in self.bandits:
-                b.epoch_reset()
+                b.reset_bandit()
             for t in range(1, self.T + 1):
                 for idx, bandit in enumerate(self.bandits):
                     q_t = bandit.q_t()
@@ -196,7 +196,7 @@ class Environment:
         for _ in range(self.epochs):
             # reset the action values
             for b in self.bandits:
-                b.epoch_reset()
+                b.reset_bandit()
             for t in range(1, self.T + 1):
                 for idx, bandit in enumerate(self.bandits):
                     # initialise H_t with same value for all actions.
@@ -215,12 +215,12 @@ class Environment:
                         self.arm_reward[idx][chosen_arm] += r_t
                         # increment arm count for chosen arm
                         self.arm_count[idx][chosen_arm] += 1
-                        avg_r = bandit.get_average_reward()
-                        # update H_t(a') based on chosen arm/action: a'
-                        H_t[chosen_arm] = H_t[chosen_arm] + alpha * (r_t - avg_r) * (1 - pi_t[chosen_arm])
+                        avg_r = bandit.get_average_reward(t)
                         # update H_t for all non-chosen arms
                         for _ in range(len(H_t)):
                             if _ == chosen_arm:
+                                # update H_t(a') based on chosen arm/action: a'
+                                H_t[chosen_arm] = H_t[chosen_arm] + alpha * (r_t - avg_r) * (1 - pi_t[chosen_arm])
                                 continue
                             else:
                                 H_t[_] = H_t[_] - alpha * (r_t - avg_r) * (pi_t[_])
@@ -314,7 +314,7 @@ def plot(list, string):
     plt.show()
 
 
-env = Environment(epochs=100, t=1000, n=1, k=5, bandit_type='b')
+env = Environment(epochs=10, t=5000, n=1, k=5, bandit_type='b')
 
 y_axis_reward = []
 y_axis_arm = []
@@ -331,7 +331,7 @@ env.optimistic()
 env.write_to_list(y_axis_reward, y_axis_arm)
 env.reset()
 
-env.UCB(10)
+env.UCB(1)
 env.write_to_list(y_axis_reward, y_axis_arm)
 env.reset()
 

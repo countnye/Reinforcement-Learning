@@ -1,4 +1,0 @@
-Gaussian arm means are  [2, 5, 3, 6, 4]
-sd: 0.1
-
-Bernoulli arm probabilities are  [0.64, 0.52, 0.39, 0.0, 0.5]

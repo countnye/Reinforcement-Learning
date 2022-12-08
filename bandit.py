@@ -75,7 +75,7 @@ class Bandit:
     def bernoulli_reward(self, a):
         # if chosen value is higher than win prob for given arm, reward is 1
         val = np.random.random()
-        if val > self.reward_param[a]:
+        if val <= self.reward_param[a]:
             self.rewards[a] += 1
             self.arm_count[a] += 1
             return 1
@@ -88,10 +88,10 @@ class Bandit:
         # get reward sampled from gaussian distribution
         # with mean unique to the particular arm
         # reward = np.random.normal(self.reward_param[a], 1)
-        reward = rd.gauss(self.reward_param[a], 0.1)
+        reward = rd.gauss(self.reward_param[a], 1)
         # get only positive rewards
         while reward < 0:
-            reward = rd.gauss(self.reward_param[a], 0.1)
+            reward = rd.gauss(self.reward_param[a], 1)
         self.rewards[a] += reward
         self.arm_count[a] += 1
         return reward
@@ -109,9 +109,21 @@ class Bandit:
 
     # function to reset the action value
     def epoch_reset(self):
+        self.best_chosen_arm = 0
         self.action_value = [0.0 for _ in range(self.k)]
         self.rewards = [0 for _ in range(self.k)]
         self.arm_count = [0 for _ in range(self.k)]
+        self.avg_reward_over_t = []
+
+    def reset_bandit(self):
+        self.reward_param = []
+        self.best_arm = 0
+        if self.type == Type.BERNOULLI:
+            self.init_bernoulli_arms()
+        elif self.type == Type.GAUSSIAN:
+            self.init_gaussian_arms()
+        self.epoch_reset()
+
 
     # returns number of times all actions have been taken
     def n_a(self, a):
@@ -122,8 +134,8 @@ class Bandit:
         return self.rewards
 
     # returns average reward up to a timestep
-    def get_average_reward(self):
-        return sum(self.rewards) / len(self.rewards)
+    def get_average_reward(self, t):
+        return sum(self.rewards) / t
 
     # function to calculate max reward possible, used to calculate regret
     def get_max_reward(self, n):
