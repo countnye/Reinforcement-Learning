@@ -49,6 +49,12 @@ class ChessBoard:
         else:
             print('Game is not active.')
 
+    # function to get random legal action
+    def get_random_move(self):
+        possible_moves = self.get_legal_moves()
+        random_idx = r.randint(0, len(possible_moves) - 1)
+        return possible_moves[random_idx]
+
     # function to get possible legal moves
     def get_legal_moves(self):
         legal_moves = []
@@ -68,12 +74,13 @@ class ChessBoard:
 
 board = ChessBoard('KKR')
 board.print_board()
-# # makes random legal moves until someone is under check
-# while not board.board.is_check():
-#     legal_move = board.get_legal_moves()
-#     curr_move = legal_move[r.randint(0, len(legal_move) - 1)]
-#     board.make_move(curr_move)
-#     print('move made = ', curr_move)
-#     board.print_board()
+# makes random legal moves until someone is under check
+while not board.board.is_check():
+    legal_move = board.get_legal_moves()
+    curr_move = legal_move[r.randint(0, len(legal_move) - 1)]
+    board.make_move(curr_move)
+    print('move made = ', curr_move)
+    board.print_board()
+    board.board.is_fivefold_repetition()
 
 # (!1)
