@@ -20,14 +20,11 @@ class StateSpace:
         # check for repeating boards and when no new board is possible, end loop.
 
         # state space should be a dict in a dict in form {'state': {'action': q-value} }
-        if self.board.is_game_over():
-            return
 
-
+        # ASSUMPTION: this block does not fire if game is over
         for move in self.board.get_legal_moves():
             self.board.push(move)
             self.set_state_space_rec()
-            action = {}
             # get FEN representation of board
             state = self.board.fen()
             # if state is not already in dict, add it
@@ -35,8 +32,11 @@ class StateSpace:
             if state not in self.state_space.keys():
                 self.state_space[state] = {move : 0}
             else:
-
+                # init's Q-value of state-action cell to 0
+                self.state_space[state][move] = 0
             self.board.pop()
+
+        return
 
 
 
