@@ -11,9 +11,10 @@ There's an inbuilt copy function in the chess module.
 
 class StateSpace:
     def __init__(self, board):
-        self.board = board.copy
+        self.board = board.copy()
         self.state_space = {}
-        self.set_state_space()
+        self.set_state_space_rec()
+        self.i = 0
 
     # function to initialize the state space
     def set_state_space_rec(self):
@@ -61,7 +62,7 @@ class StateSpace:
 
 
 board = cb.ChessBoard('KKR')
-test_space = StateSpace(board)
+test_space = StateSpace(board.board)
 test_space.set_state_space_rec()
 print("done")
 test_space.save("state_space.bson")
