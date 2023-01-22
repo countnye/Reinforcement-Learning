@@ -1,4 +1,6 @@
 import chess
+import pickle
+import ChessBoard as cb
 
 '''''
 
@@ -9,7 +11,7 @@ There's an inbuilt copy function in the chess module.
 
 class StateSpace:
     def __init__(self, board):
-        self.board = board.copy()
+        self.board = board.copy
         self.state_space = {}
         self.set_state_space()
 
@@ -38,9 +40,29 @@ class StateSpace:
 
         return
 
+    
+    def save(self, filename):
+        '''''
+        Purpose of this function is to save state space,
+        avoiding re-computation
+        '''''
+        with open(filename, 'wb') as f:
+            pickle.dump(self.state_space, f, pickle.HIGHEST_PROTOCOL)
 
+    def load(self, filename):
+        with open(filename, 'rb') as f:
+            self.state_space = pickle.load(f)
+            return self.state_space
 
 
     # function to get state space
     def get_state_space(self):
         return self.state_space
+
+
+board = cb.ChessBoard('KKR')
+test_space = StateSpace(board)
+test_space.set_state_space_rec()
+print("done")
+test_space.save("state_space.bson")
+
