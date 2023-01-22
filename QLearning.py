@@ -1,61 +1,78 @@
-import numpy as np
 import random as r
 
-import ChessBoard as chessBoard
 import StateSpace as stateSpace
 
 
 class QLearning:
+    """
+    Q-Learning class
+    """
     def __init__(self, alpha, gamma, epsilon, chess_board):
         self.alpha = alpha
         self.gamma = gamma
         self.epsilon = epsilon
-        # self.chess_board = chess_board
-        self.chess_board = chessBoard.ChessBoard('KRK')
-        # define the state space
+        self.chess_board = chess_board
         self.state_space = stateSpace.StateSpace(self.chess_board).get_state_space()
         self.end_loop = False
 
     def learn(self):
-        while not self.end_loop:
-            # epsilon chance of exploration
-            if r.uniform(0, 1) < self.epsilon:
-                move = self.chess_board.get_random_move()
-            else:
-                # for all moves get move with max reward
-                pass
-            # change this to previous q_val once state space is defined
-            prev_q_val = 0
-            # change this to maximum/minimum possible Q value for the next state
-            if self.chess_board.get_turn() == 'WHITE':
-                # get the max Q value for the next state
-                next_val = 10
-            else:
-                # get the min Q value for the next state
-                next_val = 0
-            # change this to reward for the given move
-            reward = 10
-            # calculate the new Q value
-            new_q_val = (1 - self.alpha) * prev_q_val + self.alpha * (reward + self.gamma * next_val)
+        """
+        Function to implement Q-Learning.
+        """
+        for _ in range(100):
+            while not self.end_loop:
+                curr_state = self.chess_board.get_board_representation()
+                if r.uniform(0, 1) < self.epsilon:
+                    move = self.chess_board.get_random_move()
+                else:
+                    _, move = self.get_next(self.chess_board.copy())
+                # get Q(s_t,a_t)
+                curr_val = self.get_q_val(curr_state, move)
+                # get max Q(s_{t+1}, a)
+                next_state = self.chess_board.copy()
+                next_state.make_move(move)
+                next_q_val = self.get_next(next_state)
+                # -1 reward for making move
+                reward = -1
+                # calculate TD error
+                td_error = reward + self.gamma * next_q_val - curr_val
+                # update Q value
+                self.state_space[curr_state][move] = curr_val + self.alpha * td_error
+                # make the move
+                self.chess_board.make_move(move)
+                # end loop if checkmate
+                if self.chess_board.is_checkmate():
+                    self.end_loop = True
+            # reset the board after each epoch
+            self.chess_board.reset()
+            self.end_loop = False
 
-    # function to get the max Q value given a set of moves
-    def get_next(self, action_set, turn):
-        self.chess_board.make_move(action_set[0])
-        board_rep = self.chess_board.get_board_representation()
-        next_q = self.state_space[board_rep]
-        self.chess_board.board.pop()
-        next_action = action_set[0]
-        for move in action_set:
-            self.chess_board.make_move(move)
-            board_rep = self.chess_board.get_board_representation()
-            # for each action get its Q value
-            if turn == 'WHITE' and self.state_space[board_rep] > next_q:
-                next_q = self.state_space[board_rep]
-                next_action = move
-            elif turn == 'BLACK' and self.state_space[board_rep] < next_q:
-                next_q = self.state_space[board_rep]
-                next_action = move
-            # undo the move from the board
-            self.chess_board.board.pop()
-        return next_q, next_action
+    def get_q_val(self, state, action):
+        """
+        Function to get the Q-Value of the given state.
+        :param state: the FEN of current state
+        :param action: the action from current state
+        :return: the Q-Value of the current state-action pair
+        """
+        return self.state_space[state][action]
+
+    def get_next(self, board):
+        """
+        Function to get the max/min Q-Value of a given state.
+        :param board: the board representation of the current state
+        :return: the max/min q-value and the corresponding action
+        """
+        board_rep = board.get_board_representation()
+        action_set = board.get_legal_moves()
+        best_action = action_set[0]
+        q_val = self.get_q_val(board_rep, best_action)
+        for action in action_set:
+            curr_q_val = self.get_q_val(board_rep, action)
+            if board.get_turn() == 'WHITE' and curr_q_val > q_val:
+                q_val = curr_q_val
+                best_action = action
+            elif board.get_turn() == 'BLACK' and curr_q_val < q_val:
+                q_val = curr_q_val
+                best_action = action
+        return q_val, best_action
 
