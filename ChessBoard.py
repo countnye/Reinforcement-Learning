@@ -66,6 +66,10 @@ class ChessBoard:
     def get_turn(self):
         return 'WHITE' if self.board.turn == True else 'BLACK'
 
+    # function to get the board coordinates (rep used in the state space)
+    def get_board_representation(self):
+        pass
+
     # function to print the board
     def print_board(self):
         print(self.board)
