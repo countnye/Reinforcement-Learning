@@ -3,6 +3,9 @@ from enum import Enum
 import random as r
 import copy
 
+class Scenario(Enum):
+    KKQ = 0
+    KKR = 1
 
 class GameState(Enum):
     RUNNING = 'GAME NOT OVER'
