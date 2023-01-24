@@ -114,5 +114,5 @@ board = cb.ChessBoard('KKR')
 test_space = StateSpace(board.board)
 start_time = time.time()
 test_space.set_state_space()
+test_space.save("state_space.pkl")
 print("--- %s seconds ---" % (time.time() - start_time))
-
