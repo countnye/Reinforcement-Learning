@@ -20,31 +20,6 @@ class StateSpace:
         self.state_space = {}
         self.set_state_space()
 
-# Commented out in case we want it back
-    # def set_state_space_rec(self):
-    #     """
-    #     Function to generate the state-space
-    #     :return: the state-space dictionary
-    #     """
-    #     # state space should be a dict in a dict in form {'state': {'action': q-value} }
-
-    #     # ASSUMPTION: this block does not fire if game is over
-    #     for move in self.chess_board.get_legal_moves():
-    #         self.chess_board.board.push(move)
-    #         self.set_state_space_rec()
-    #         # get FEN representation of board
-    #         state = self.chess_board.get_board_representation()
-    #         # if state is not already in dict, add it
-    #         # and init q-value to 0
-    #         if state not in self.state_space.keys():
-    #             self.state_space[state] = {move: 0}
-    #         else:
-    #             # inits Q-value of state-action cell to 0
-    #             self.state_space[state][move] = 0
-    #         self.chess_board.pop()
-
-    #     return
-
     def set_state_space(self):
         board = chess.Board()
         for bk_r in range(0,8):
@@ -63,7 +38,6 @@ class StateSpace:
                                     continue
 
                                 self.create_action_pairs(board, bk_pos, wk_pos, w2_pos)
-
 
 
     def create_action_pairs(self, board, bk_pos, wk_pos, w2_pos):
@@ -110,9 +84,9 @@ class StateSpace:
         """
         return self.state_space
 
-board = cb.ChessBoard('KKR')
-test_space = StateSpace(board.board)
-start_time = time.time()
-test_space.set_state_space()
-test_space.save("state_space.pkl")
-print("--- %s seconds ---" % (time.time() - start_time))
+# board = cb.ChessBoard('KKR')
+# test_space = StateSpace(board.board)
+# start_time = time.time()
+# test_space.set_state_space()
+# test_space.save("state_space.pkl")
+# print("--- %s seconds ---" % (time.time() - start_time))

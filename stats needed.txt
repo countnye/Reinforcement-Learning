@@ -1,0 +1,4 @@
+- Winning percentage (compared to different exploration strategies?)
+- Average game length
+- Need to do hyperparameter tuning and produce graphs with each hyperparam
+  value

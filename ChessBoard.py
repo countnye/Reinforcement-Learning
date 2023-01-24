@@ -19,7 +19,7 @@ class ChessBoard:
         # initialize the given board
         self.board = chess.Board()
         self.board_type = board_type
-        if self.board_type == 'KKQ':
+        if self.board_type == Scenario.KKQ:
             self.init_board_KKQ()
         else:
             self.init_board_KKR()
