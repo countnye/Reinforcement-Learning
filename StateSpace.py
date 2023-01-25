@@ -4,11 +4,6 @@ import time
 import chess
 
 
-def char_range(c1, c2):
-    for c in range(ord(c1), ord(c2) + 1):
-        yield chr(c)
-
-
 class StateSpace:
     """
     StateSpace class
@@ -53,17 +48,16 @@ class StateSpace:
         else:
             board.set_piece_at(w2_pos, chess.Piece(chess.ROOK, chess.WHITE))
 
-        if board.is_valid():
-            actions = {}
-            # get all white (current) moves
-            for move in board.legal_moves:
-                actions[str(move)] = 0.0
-            # change turn to black and get moves
-            board.push(chess.Move.null())
-            for move in board.legal_moves:
-                actions[str(move)] = 0.0
+        actions = {}
+        # get all white (current) moves
+        for move in board.legal_moves:
+            actions[str(move)] = 0.0
+        # change turn to black and get moves
+        board.push(chess.Move.null())
+        for move in board.legal_moves:
+            actions[str(move)] = 0.0
 
-            self.state_space[(bk_pos, wk_pos, w2_pos)] = actions
+        self.state_space[(bk_pos, wk_pos, w2_pos)] = actions
 
     def update_action_pairs(self, state):
         board = chess.Board()
@@ -109,9 +103,9 @@ class StateSpace:
         return self.state_space
 
 
-board = cb.ChessBoard('KKR')
-test_space = StateSpace(board.board)
-start_time = time.time()
-test_space.set_state_space()
-test_space.save("state_spaceKKR.pkl")
-print("--- %s seconds ---" % (time.time() - start_time))
+# board = cb.ChessBoard('KKR')
+# test_space = StateSpace(board.board)
+# start_time = time.time()
+# test_space.set_state_space()
+# test_space.save("state_spaceKKR.pkl")
+# print("--- %s seconds ---" % (time.time() - start_time))

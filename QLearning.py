@@ -5,13 +5,13 @@ import chess
 import StateSpace as stateSpace
 import ChessBoard as cb
 
-
 class QLearning:
     """
     Q-Learning class
     """
 
-    def __init__(self, alpha, gamma, epsilon, chess_board):
+    def __init__(self, epochs, alpha, gamma, epsilon, chess_board):
+        self.epochs = epochs
         self.alpha = alpha
         self.gamma = gamma
         self.epsilon = epsilon
@@ -21,12 +21,30 @@ class QLearning:
         self.state_space = self.state_space_model.load('state_spaceKKR.pkl')
         self.end_loop = False
         self.new_board = chess_board
+        self.stats = {'wins'            :   0,
+                      'game_length'     :   0,
+                      'games_played'    :   0}
+
+
+    def get_stats(self):
+        # stats are: (epoch_num, wins, game length, games played)
+        return self.stats
+
+    def record_stats(self,wins, game_length, games_played):
+        self.stats['wins'] = wins
+        self.stats['game_length'] = game_length
+        self.stats['games_played'] = games_played
 
     def learn(self):
         """
         Function to implement Q-Learning.
         """
-        for _ in range(100):
+        wins = 0
+        game_length = 0
+        for epoch in range(self.epochs):
+            if epoch%100 == 0:
+                self.record_stats(wins, game_length, epoch)
+
             while not self.end_loop:
                 curr_state = self.chess_board.get_board_representation()
                 if r.uniform(0, 1) < self.epsilon:
@@ -40,6 +58,7 @@ class QLearning:
                 next_state.make_move(move)
                 next_state.switch_turns()
                 next_q_val, _ = self.get_next(next_state)
+                game_length = self.chess_board.fullmove_number
                 # if the move results in checkmate, reward is 100
                 if next_state.is_checkmate():
                     reward = 100
@@ -57,6 +76,10 @@ class QLearning:
                 self.chess_board.make_move(move)
                 # end loop if checkmate
                 if self.chess_board.is_checkmate():
+                    self.end_loop = True
+                    wins += 1
+                    print("win ", wins, " in epoch ", epoch)
+                elif self.chess_board.is_stalemate():
                     self.end_loop = True
             # reset the board after each epoch
             self.chess_board.reset()
