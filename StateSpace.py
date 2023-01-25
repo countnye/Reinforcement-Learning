@@ -58,8 +58,8 @@ class StateSpace:
             # get all white (current) moves
             for move in board.legal_moves:
                 actions[str(move)] = 0.0
-            # get all black moves
-            board.turn = chess.BLACK
+            # change turn to black and get moves
+            board.push(chess.Move.null())
             for move in board.legal_moves:
                 actions[str(move)] = 0.0
 
@@ -109,9 +109,9 @@ class StateSpace:
         return self.state_space
 
 
-# board = cb.ChessBoard('KKR')
-# test_space = StateSpace(board.board)
-# start_time = time.time()
-# test_space.set_state_space()
-# test_space.save("state_spaceKKR.pkl")
-# print("--- %s seconds ---" % (time.time() - start_time))
+board = cb.ChessBoard('KKR')
+test_space = StateSpace(board.board)
+start_time = time.time()
+test_space.set_state_space()
+test_space.save("state_spaceKKR.pkl")
+print("--- %s seconds ---" % (time.time() - start_time))
