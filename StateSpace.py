@@ -55,6 +55,11 @@ class StateSpace:
 
         if board.is_valid():
             actions = {}
+            # get all white (current) moves
+            for move in board.legal_moves:
+                actions[str(move)] = 0.0
+            # get all black moves
+            board.turn = chess.BLACK
             for move in board.legal_moves:
                 actions[str(move)] = 0.0
 
