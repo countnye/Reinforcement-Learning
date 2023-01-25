@@ -1,19 +1,26 @@
 import random as r
 
+import chess
+
 import StateSpace as stateSpace
+import ChessBoard as cb
 
 
 class QLearning:
     """
     Q-Learning class
     """
+
     def __init__(self, alpha, gamma, epsilon, chess_board):
         self.alpha = alpha
         self.gamma = gamma
         self.epsilon = epsilon
         self.chess_board = chess_board
-        self.state_space = stateSpace.StateSpace(self.chess_board).get_state_space()
+        # self.chess_board = cb.ChessBoard(cb.Scenario.KKR)
+        self.state_space_model = stateSpace.StateSpace(cb.Scenario.KKR)
+        self.state_space = self.state_space_model.load('state_spaceKKR.pkl')
         self.end_loop = False
+        self.new_board = chess_board
 
     def learn(self):
         """
@@ -31,9 +38,17 @@ class QLearning:
                 # get max Q(s_{t+1}, a)
                 next_state = self.chess_board.copy()
                 next_state.make_move(move)
-                next_q_val = self.get_next(next_state)
-                # -1 reward for making move
-                reward = -1
+                next_state.switch_turns()
+                next_q_val, _ = self.get_next(next_state)
+                # if the move results in checkmate, reward is 100
+                if next_state.is_checkmate():
+                    reward = 100
+                # if the move results in stalemate, reward is 0
+                elif next_state.is_stalemate():
+                    reward = 0
+                # if simply move made, reward is -1
+                else:
+                    reward = -1
                 # calculate TD error
                 td_error = reward + self.gamma * next_q_val - curr_val
                 # update Q value
@@ -50,10 +65,11 @@ class QLearning:
     def get_q_val(self, state, action):
         """
         Function to get the Q-Value of the given state.
-        :param state: the FEN of current state
+        :param state: the representation of current state
         :param action: the action from current state
         :return: the Q-Value of the current state-action pair
         """
+        # if the action or state was missing from state space, it was not explored
         return self.state_space[state][action]
 
     def get_next(self, board):
@@ -76,3 +92,21 @@ class QLearning:
                 best_action = action
         return q_val, best_action
 
+    def test_board(self):
+        """
+        Function to return the best actions taken using Q values.
+        :return: the list of actions taken.
+        """
+        best_actions = []
+        run = True
+        while run:
+            _, action = self.get_next(self.chess_board)
+            best_actions.append(action)
+            self.chess_board.make_move(action)
+            if self.chess_board.is_stalemate() or self.chess_board.is_checkmate():
+                if self.chess_board.is_checkmate():
+                    print(self.chess_board.get_turn() + ' Checkmated!')
+                else:
+                    print(self.chess_board.get_turn() + ' Stalemated!')
+                run = False
+        return best_actions

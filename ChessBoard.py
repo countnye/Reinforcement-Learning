@@ -3,9 +3,11 @@ from enum import Enum
 import random as r
 import copy
 
+
 class Scenario(Enum):
     KKQ = 0
     KKR = 1
+
 
 class GameState(Enum):
     RUNNING = 'GAME NOT OVER'
@@ -61,6 +63,12 @@ class ChessBoard:
         else:
             print('Game is not active.')
 
+    def switch_turns(self):
+        """
+        Function to switch turns without making a move.
+        """
+        self.board.push(chess.Move.null())
+
     def get_random_move(self):
         """
         Function to get a random move from the possible legal moves.
@@ -87,6 +95,13 @@ class ChessBoard:
         """
         return self.board.is_checkmate()
 
+    def is_stalemate(self):
+        """
+        Function to check if board is in stalemate.
+        :return: True is stalemate, else False
+        """
+        return self.board.is_stalemate()
+
     def get_turn(self):
         """
         Function to get the player who is currently playing.
@@ -96,10 +111,14 @@ class ChessBoard:
 
     def get_board_representation(self):
         """
-        Function to get the FEN representation of the board.
-        :return: FEN representation of the board
+        Function to get the representation of the board.
+        The representation is in the form (bk_square, wk_square, wp_square).
+        :return: the representation of the board
         """
-        return self.board.fen()
+        bk_pos = self.board.king(chess.BLACK)
+        wk_pos = self.board.king(chess.WHITE)
+        wp_pos = list(self.board.pieces(chess.ROOK, chess.WHITE))[0]
+        return (bk_pos, wk_pos, wp_pos)
 
     def pop(self):
         """
@@ -132,6 +151,7 @@ class ChessBoard:
 
 
 # board = ChessBoard('KKR')
+# print(board.get_board_representation())
 # print('OG Board:')
 # board.print_board()
 # board1 = board.copy()
