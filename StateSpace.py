@@ -25,7 +25,7 @@ class StateSpace:
                             for w2_c in range(-1, 8):
                                 if (w2_r != -1 and w2_c == -1) or (w2_r != -1 and w2_c == -1):
                                     continue
-                                if (w2_r == -1 and w2_c == -1):
+                                if w2_r == -1 and w2_c == -1:
                                     w2_pos = None
                                 else:
                                     w2_pos = chess.square(w2_c, w2_r)
@@ -34,7 +34,6 @@ class StateSpace:
                                         bk_pos == w2_pos or
                                         wk_pos == w2_pos):
                                     continue
-
                                 self.create_action_pairs(board, bk_pos, wk_pos, w2_pos)
 
     def create_action_pairs(self, board, bk_pos, wk_pos, w2_pos):
@@ -42,12 +41,10 @@ class StateSpace:
         board.clear()
         board.set_piece_at(bk_pos, chess.Piece(chess.KING, chess.BLACK))
         board.set_piece_at(wk_pos, chess.Piece(chess.KING, chess.WHITE))
-        if (self.scenario == cb.Scenario.KKQ) and w2_pos != None:
+        if (self.scenario == cb.Scenario.KKQ) and w2_pos is not None:
             board.set_piece_at(w2_pos, chess.Piece(chess.QUEEN, chess.WHITE))
-        elif (self.scenario == cb.Scenario.KKR) and w2_pos != None:
+        elif (self.scenario == cb.Scenario.KKR) and w2_pos is not None:
             board.set_piece_at(w2_pos, chess.Piece(chess.ROOK, chess.WHITE))
-        
-
         actions = {}
         # get all white (current) moves
         for move in board.legal_moves:
@@ -56,7 +53,6 @@ class StateSpace:
         board.push(chess.Move.null())
         for move in board.legal_moves:
             actions[str(move)] = 0.0
-
         self.state_space[(bk_pos, wk_pos, w2_pos)] = actions
 
     def save(self, filename):
@@ -83,7 +79,6 @@ class StateSpace:
         :return: the state-space dictionary
         """
         return self.state_space
-
 
 # test_space = StateSpace(cb.Scenario.KKR)
 # start_time = time.time()
