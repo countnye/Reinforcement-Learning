@@ -9,14 +9,15 @@ def plot(stats):
 
 epochs = 100
 start_time = time.time()
-
 scenario = cb.Scenario.KKR
 chess_board = cb.ChessBoard(scenario)
 model = ql.QLearning(epochs, 0.5, 0.9, 0.2, chess_board)
+print("--- %s seconds ---" % (time.time() - start_time))
+model.learn()
 stats_q_learning = model.get_stats()
 plot(stats_q_learning)
 
-print("--- %s seconds ---" % (time.time() - start_time))
 
-best_moves = model.test_board()
-print(best_moves)
+
+# best_moves = model.test_board()
+# print(best_moves)

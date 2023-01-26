@@ -16,7 +16,6 @@ class QLearning:
         self.gamma = gamma
         self.epsilon = epsilon
         self.chess_board = chess_board
-        # self.chess_board = cb.ChessBoard(cb.Scenario.KKR)
         self.state_space_model = stateSpace.StateSpace(cb.Scenario.KKR)
         self.state_space = self.state_space_model.load('state_spaceKKR.pkl')
         self.end_loop = False
@@ -38,32 +37,43 @@ class QLearning:
     def learn(self):
         """
         Function to implement Q-Learning.
+        Right now function is using old moves
+        as keys with new states for some reason
         """
         wins = 0
         game_length = 0
         for epoch in range(self.epochs):
-            if epoch%100 == 0:
+            if epoch%10 == 0:
                 self.record_stats(wins, game_length, epoch)
 
             while not self.end_loop:
+                print("\nstart of loop")
                 curr_state = self.chess_board.get_board_representation()
+                print("current state is: ", curr_state)
                 if r.uniform(0, 1) < self.epsilon:
+                    print("random move")
                     move = self.chess_board.get_random_move()
                 else:
-                    _, move = self.get_next(self.chess_board.copy())
+                    print("get optimal action")
+                    _, move = self.get_next(self.chess_board)
+
                 # get Q(s_t,a_t)
+                print("current turn ", self.chess_board.get_turn(), " and move chosen: ", move)
                 curr_val = self.get_q_val(curr_state, move)
                 # get max Q(s_{t+1}, a)
-                next_state = self.chess_board.copy()
-                next_state.make_move(move)
-                next_state.switch_turns()
-                next_q_val, _ = self.get_next(next_state)
-                game_length = self.chess_board.fullmove_number
+                next_state_board = self.chess_board.copy_board(curr_state, self.chess_board.board.turn)
+                next_state_board.make_move(move)
+                print("next statemove made: ", move)
+                next_state_board.switch_turns()
+                print("board rep in next state after move: ", next_state_board.get_board_representation())
+                next_q_val, _ = self.get_next(next_state_board)
+                game_length = self.chess_board.board.fullmove_number
+                print("nex_state computed")
                 # if the move results in checkmate, reward is 100
-                if next_state.is_checkmate():
+                if next_state_board.is_checkmate():
                     reward = 100
                 # if the move results in stalemate, reward is 0
-                elif next_state.is_stalemate():
+                elif next_state_board.is_stalemate():
                     reward = 0
                 # if simply move made, reward is -1
                 else:
@@ -73,13 +83,17 @@ class QLearning:
                 # update Q value
                 self.state_space[curr_state][move] = curr_val + self.alpha * td_error
                 # make the move
+                # BUG: THIS MAKES ILLEGAL MOVES A LOT
                 self.chess_board.make_move(move)
+                print("move made: ", move, ". Here is the board rep: ", self.chess_board.get_board_representation())
                 # end loop if checkmate
                 if self.chess_board.is_checkmate():
                     self.end_loop = True
                     wins += 1
                     print("win ", wins, " in epoch ", epoch)
                 elif self.chess_board.is_stalemate():
+                    print("stalemate")
+                    print(self.chess_board)
                     self.end_loop = True
             # reset the board after each epoch
             self.chess_board.reset()
@@ -96,6 +110,7 @@ class QLearning:
         return self.state_space[state][action]
 
     def get_next(self, board):
+        # Has to work for board = ChessBoard object and board = chess.Board
         """
         Function to get the max/min Q-Value of a given state.
         :param board: the board representation of the current state
@@ -108,6 +123,7 @@ class QLearning:
         for action in action_set:
             curr_q_val = self.get_q_val(board_rep, action)
             if board.get_turn() == 'WHITE' and curr_q_val > q_val:
+                print("get next curr turn is white")
                 q_val = curr_q_val
                 best_action = action
             elif board.get_turn() == 'BLACK' and curr_q_val < q_val:

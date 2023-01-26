@@ -11,12 +11,7 @@ class StateSpace:
 
     def __init__(self, scenario):
         self.scenario = scenario
-        if scenario == cb.Scenario.KKR:
-            self.chess_board = cb.ChessBoard('KKR')
-        else:
-            self.chess_board = cb.ChessBoard('KKQ')
         self.state_space = {}
-        self.set_state_space()
 
     def set_state_space(self):
         board = chess.Board()
@@ -26,9 +21,14 @@ class StateSpace:
                 for wk_r in range(0, 8):
                     for wk_c in range(0, 8):
                         wk_pos = chess.square(wk_c, wk_r)
-                        for w2_r in range(0, 8):
-                            for w2_c in range(0, 8):
-                                w2_pos = chess.square(w2_c, w2_r)
+                        for w2_r in range(-1, 8):
+                            for w2_c in range(-1, 8):
+                                if (w2_r != -1 and w2_c == -1) or (w2_r != -1 and w2_c == -1):
+                                    continue
+                                if (w2_r == -1 and w2_c == -1):
+                                    w2_pos = None
+                                else:
+                                    w2_pos = chess.square(w2_c, w2_r)
                                 # skip overlapping positions
                                 if (bk_pos == wk_pos or
                                         bk_pos == w2_pos or
@@ -40,13 +40,13 @@ class StateSpace:
     def create_action_pairs(self, board, bk_pos, wk_pos, w2_pos):
         board = chess.Board()
         board.clear()
-
         board.set_piece_at(bk_pos, chess.Piece(chess.KING, chess.BLACK))
         board.set_piece_at(wk_pos, chess.Piece(chess.KING, chess.WHITE))
-        if self.scenario == cb.Scenario.KKQ:
+        if (self.scenario == cb.Scenario.KKQ) and w2_pos != None:
             board.set_piece_at(w2_pos, chess.Piece(chess.QUEEN, chess.WHITE))
-        else:
+        elif (self.scenario == cb.Scenario.KKR) and w2_pos != None:
             board.set_piece_at(w2_pos, chess.Piece(chess.ROOK, chess.WHITE))
+        
 
         actions = {}
         # get all white (current) moves
@@ -58,24 +58,6 @@ class StateSpace:
             actions[str(move)] = 0.0
 
         self.state_space[(bk_pos, wk_pos, w2_pos)] = actions
-
-    def update_action_pairs(self, state):
-        board = chess.Board()
-        board.clear()
-
-        board.set_piece_at(state[0], chess.Piece(chess.KING, chess.BLACK))
-        board.set_piece_at(state[1], chess.Piece(chess.KING, chess.WHITE))
-        if self.scenario == cb.Scenario.KKQ:
-            board.set_piece_at(state[2], chess.Piece(chess.QUEEN, chess.WHITE))
-        else:
-            board.set_piece_at(state[2], chess.Piece(chess.ROOK, chess.WHITE))
-
-        if board.is_valid():
-            actions = {}
-            for move in board.legal_moves:
-                actions[str(move)] = 0.0
-
-            self.state_space[state] = actions
 
     def save(self, filename):
         """
@@ -103,8 +85,7 @@ class StateSpace:
         return self.state_space
 
 
-# board = cb.ChessBoard('KKR')
-# test_space = StateSpace(board.board)
+# test_space = StateSpace(cb.Scenario.KKR)
 # start_time = time.time()
 # test_space.set_state_space()
 # test_space.save("state_spaceKKR.pkl")

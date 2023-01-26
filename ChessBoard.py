@@ -17,13 +17,13 @@ class GameState(Enum):
 
 
 class ChessBoard:
-    def __init__(self, board_type):
+    def __init__(self, board_type, board=chess.Board(), isNewBoard = True):
         # initialize the given board
-        self.board = chess.Board()
         self.board_type = board_type
-        if self.board_type == Scenario.KKQ:
+        self.board = board
+        if self.board_type == Scenario.KKQ and isNewBoard:
             self.init_board_KKQ()
-        else:
+        elif self.board_type == Scenario.KKR and isNewBoard:
             self.init_board_KKR()
         # define a state to check end of game
         self.game_state = GameState.RUNNING
@@ -59,7 +59,7 @@ class ChessBoard:
                 if self.board.is_check():
                     print(self.get_turn() + ' is in check!')
             else:
-                print('Illegal move.')
+                print('Illegal move.:', move, " current turn: ", self.get_turn(), "board rep: ", self.get_board_representation())
         else:
             print('Game is not active.')
 
@@ -100,14 +100,15 @@ class ChessBoard:
         Function to check if board is in stalemate.
         :return: True is stalemate, else False
         """
-        return self.board.is_stalemate()
+        
+        return True if self.board.is_stalemate() or self.board.is_fifty_moves() or self.board.is_insufficient_material() else False
 
     def get_turn(self):
         """
         Function to get the player who is currently playing.
         :return: 'WHITE' if white's turn, else 'BLACK'
         """
-        return 'WHITE' if self.board.turn == True else 'BLACK'
+        return 'WHITE' if self.board.turn == chess.WHITE else 'BLACK'
 
     def get_board_representation(self):
         """
@@ -117,7 +118,11 @@ class ChessBoard:
         """
         bk_pos = self.board.king(chess.BLACK)
         wk_pos = self.board.king(chess.WHITE)
-        wp_pos = list(self.board.pieces(chess.ROOK, chess.WHITE))[0]
+        # if there is no other non-king white piece on board, set pos to -1
+        if len(self.board.pieces(chess.ROOK if self.board_type == Scenario.KKR else chess.QUEEN, chess.WHITE)) == 0:
+            wp_pos = None
+        else:
+            wp_pos = list(self.board.pieces(chess.ROOK if self.board_type == Scenario.KKR else chess.QUEEN, chess.WHITE))[0]
         return (bk_pos, wk_pos, wp_pos)
 
     def pop(self):
@@ -143,11 +148,32 @@ class ChessBoard:
         print('==============')
 
     def copy(self):
+        #BUG: BECAUSE THIS RETURNS SHALLOW COPY, A MOVE IS STILL MADE ON 
+        #     OG TABLE
         """
-        Function to get the copy of this ChessBoard object.
-        :return: the copy of this instance of the ChessBoard object
+        Function to get the copy of the board object.
+        :return: the copy of this instance of the board object
         """
-        return ChessBoard(copy.copy(self.board_type))
+        # return ChessBoard(copy.copy(self.board_type))
+        return copy.copy(self)
+
+    def copy_board(self, state, turn):
+        """
+        Returns a chess.Board object with the set state
+        """
+        board = chess.Board()
+        board.clear()
+
+        board.set_piece_at(state[0], chess.Piece(chess.KING, chess.BLACK))
+        board.set_piece_at(state[1], chess.Piece(chess.KING, chess.WHITE))
+        if self.board_type == Scenario.KKQ and state[2] != None:
+            board.set_piece_at(state[2], chess.Piece(chess.QUEEN, chess.WHITE))
+        elif self.board_type == Scenario.KKR and state[2] != None:
+            board.set_piece_at(state[2], chess.Piece(chess.ROOK, chess.WHITE))
+        
+        new = ChessBoard(self.board_type, board, False)
+        new.board.turn = turn
+        return new
 
 
 # board = ChessBoard('KKR')
