@@ -23,20 +23,21 @@ class StateSpace:
                         wk_pos = chess.square(wk_c, wk_r)
                         for w2_r in range(-1, 8):
                             for w2_c in range(-1, 8):
-                                if (w2_r != -1 and w2_c == -1) or (w2_r != -1 and w2_c == -1):
-                                    continue
-                                if w2_r == -1 and w2_c == -1:
-                                    w2_pos = None
-                                else:
-                                    w2_pos = chess.square(w2_c, w2_r)
-                                # skip overlapping positions
-                                if (bk_pos == wk_pos or
-                                        bk_pos == w2_pos or
-                                        wk_pos == w2_pos):
-                                    continue
-                                self.create_action_pairs(board, bk_pos, wk_pos, w2_pos)
+                                for turn in ['BLACK', 'WHITE']:
+                                    if (w2_r != -1 and w2_c == -1) or (w2_r != -1 and w2_c == -1):
+                                        continue
+                                    if w2_r == -1 and w2_c == -1:
+                                        w2_pos = None
+                                    else:
+                                        w2_pos = chess.square(w2_c, w2_r)
+                                    # skip overlapping positions
+                                    if (bk_pos == wk_pos or
+                                            bk_pos == w2_pos or
+                                            wk_pos == w2_pos):
+                                        continue
+                                    self.create_action_pairs(bk_pos, wk_pos, w2_pos, turn)
 
-    def create_action_pairs(self, board, bk_pos, wk_pos, w2_pos):
+    def create_action_pairs(self, bk_pos, wk_pos, w2_pos, turn):
         board = chess.Board()
         board.clear()
         board.set_piece_at(bk_pos, chess.Piece(chess.KING, chess.BLACK))
@@ -47,13 +48,15 @@ class StateSpace:
             board.set_piece_at(w2_pos, chess.Piece(chess.ROOK, chess.WHITE))
         actions = {}
         # get all white (current) moves
-        for move in board.legal_moves:
-            actions[str(move)] = 0.0
-        # change turn to black and get moves
-        board.push(chess.Move.null())
-        for move in board.legal_moves:
-            actions[str(move)] = 0.0
-        self.state_space[(bk_pos, wk_pos, w2_pos)] = actions
+        if turn == 'WHITE':
+            for move in board.legal_moves:
+                actions[str(move)] = 0.0
+        else:
+            # change turn to black and get moves
+            board.push(chess.Move.null())
+            for move in board.legal_moves:
+                actions[str(move)] = 0.0
+        self.state_space[(bk_pos, wk_pos, w2_pos, turn)] = actions
 
     def save(self, filename):
         """
@@ -79,6 +82,7 @@ class StateSpace:
         :return: the state-space dictionary
         """
         return self.state_space
+
 
 # test_space = StateSpace(cb.Scenario.KKR)
 # start_time = time.time()

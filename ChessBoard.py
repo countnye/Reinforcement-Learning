@@ -27,6 +27,11 @@ class ChessBoard:
             self.init_board_KKR()
         # define a state to check end of game
         self.game_state = GameState.RUNNING
+        # self.draw_reason = {
+        #     'Stalemate': 0,
+        #     'Three-fold repetition': 0,
+        #     'Insufficient materials': 0
+        # }
 
     def init_board_KKQ(self):
         """
@@ -99,7 +104,36 @@ class ChessBoard:
         Function to check if board is in draw.
         :return: True if draw, else False
         """
-        return True if self.board.is_stalemate() or self.board.is_repetition() or self.board.is_insufficient_material() else False
+        if self.is_stalemate():
+            return True
+        elif self.is_repetition():
+            return True
+        elif self.is_insufficient_materials():
+            return True
+        else:
+            return False
+
+    def is_stalemate(self):
+        """
+        Function to check for stalemate.
+        :return: True if stalemate, else False
+        """
+        if self.board.is_stalemate():
+            return True
+        else:
+            return False
+
+    def is_repetition(self):
+        if self.board.is_repetition():
+            return True
+        else:
+            return False
+
+    def is_insufficient_materials(self):
+        if self.board.is_insufficient_material():
+            return True
+        else:
+            return False
 
     def get_turn(self):
         """
@@ -116,13 +150,17 @@ class ChessBoard:
         """
         bk_pos = self.board.king(chess.BLACK)
         wk_pos = self.board.king(chess.WHITE)
+        if self.board.turn == chess.WHITE:
+            turn = 'WHITE'
+        else:
+            turn = 'BLACK'
         # if there is no other non-king white piece on board, set pos to -1
         if len(self.board.pieces(chess.ROOK if self.board_type == Scenario.KKR else chess.QUEEN, chess.WHITE)) == 0:
             wp_pos = None
         else:
             wp_pos = \
                 list(self.board.pieces(chess.ROOK if self.board_type == Scenario.KKR else chess.QUEEN, chess.WHITE))[0]
-        return (bk_pos, wk_pos, wp_pos)
+        return (bk_pos, wk_pos, wp_pos, turn)
 
     def get_king_distance(self):
         """
